@@ -481,7 +481,7 @@
     </div>
 
     <div class="hint">
-      In Google Slides, click <strong>Share</strong> (top right) → set to "Anyone with the link" → copy the link and paste it above.
+      Paste any Google Slides link — the share link, edit link, or published embed URL all work.
     </div>
 
     <div id="setup-error" class="error-msg"></div>
@@ -585,7 +585,7 @@
 //  FIREBASE CONFIG — using a public demo project
 //  Users can replace with their own for production use
 // ═══════════════════════════════════════════════════════
-
+// For Firebase JS SDK v7.20.0 and later, measurementId is optional
 const firebaseConfig = {
   apiKey: "AIzaSyAvEaYbtuEu-U5K3-YkUfSavIsCM_vdoLE",
   authDomain: "slidealong-dd8be.firebaseapp.com",
@@ -594,6 +594,7 @@ const firebaseConfig = {
   storageBucket: "slidealong-dd8be.firebasestorage.app",
   messagingSenderId: "667682771056",
   appId: "1:667682771056:web:047125fb436d8f4b75a4b5",
+  measurementId: "G-727JX1CSBZ"
 };
 
 // ═══════════════════════════════════════════════════════
@@ -648,27 +649,14 @@ function showScreen(id) {
 // ═══════════════════════════════════════════════════════
 function toEmbedUrl(raw) {
   raw = raw.trim();
-  // Already embed
-  if (raw.includes('/embed')) return sanitizeEmbedUrl(raw);
-  // Extract presentation ID
-  const m = raw.match(/\/presentation\/d\/([\w-]+)/);
+  // Extract the presentation ID from any Google Slides URL format:
+  // /presentation/d/ID/edit, /presentation/d/ID/embed, /pub?id=ID, share links, etc.
+  const m = raw.match(/\/presentation\/d\/([a-zA-Z0-9_-]+)/);
   if (!m) return null;
-  return `https://docs.google.com/presentation/d/${m[1]}/embed?start=false&loop=false&delayms=60000`;
-}
-
-function sanitizeEmbedUrl(url) {
-  // Make sure it has delayms so auto-advance doesn't interfere
-  if (!url.includes('delayms')) url += (url.includes('?') ? '&' : '?') + 'delayms=60000';
-  return url;
-}
-
-function slidePageUrl(baseEmbed, slideIndex) {
-  // Google Slides embed: rm=minimal&slide=id.p{N} — but easier to use rm=minimal&start=false
-  // The cleanest approach: use the /present URL which supports #slide=id.pN syntax
-  // Convert embed URL back to present URL
-  const m = baseEmbed.match(/\/presentation\/d\/([\w-]+)/);
-  if (!m) return baseEmbed;
-  return `https://docs.google.com/presentation/d/${m[1]}/present?rm=minimal#slide=id.p${slideIndex}`;
+  const id = m[1];
+  // Use the /embed URL — the only format Google allows in iframes from external domains.
+  // rm=minimal hides Google chrome, start=false prevents auto-play.
+  return `https://docs.google.com/presentation/d/${id}/embed?start=false&loop=false&delayms=60000&rm=minimal`;
 }
 
 // ═══════════════════════════════════════════════════════
@@ -871,15 +859,20 @@ function startStoragePoller(code) {
 // ═══════════════════════════════════════════════════════
 //  SLIDE CONTROL
 // ═══════════════════════════════════════════════════════
+function goToSlide(iframeEl, slide) {
+  // Navigate by appending the slide hash to the embed URL.
+  // Google Slides embed supports #slide=id.pN for direct slide navigation.
+  const base = slideUrl.split('#')[0];
+  iframeEl.src = base + '#slide=id.p' + slide;
+}
+
 function loadPresenterSlide(slide) {
-  const url = slidePageUrl(slideUrl, slide);
-  document.getElementById('pres-iframe').src = url;
+  goToSlide(document.getElementById('pres-iframe'), slide);
   updatePresCounter();
 }
 
 function loadViewerSlide(slide) {
-  const url = slidePageUrl(slideUrl, slide);
-  document.getElementById('view-iframe').src = url;
+  goToSlide(document.getElementById('view-iframe'), slide);
   document.getElementById('view-slide-num').textContent = slide;
 }
 
