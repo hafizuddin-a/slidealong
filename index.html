@@ -542,6 +542,15 @@
       <button class="nav-btn" id="btn-next" onclick="changeSlide(1)">Next →</button>
     </div>
 
+    <div id="slide-count-input-wrap" style="display:none; align-items:center; gap:0.4rem;">
+      <span style="font-size:0.65rem; color:rgba(255,255,255,0.4); letter-spacing:0.06em; white-space:nowrap;">Total slides:</span>
+      <input id="total-slides-input" type="number" min="1" max="200"
+        style="width:3.5rem; padding:0.3rem 0.4rem; background:rgba(255,255,255,0.08); border:1px solid rgba(255,255,255,0.2); color:white; font-family:'DM Mono',monospace; font-size:0.75rem; border-radius:2px; text-align:center;"
+        placeholder="?"
+        onchange="setTotalSlides(parseInt(this.value))"
+        onkeydown="if(event.key==='Enter') setTotalSlides(parseInt(this.value))" />
+    </div>
+
     <button class="btn" style="padding:0.4rem 0.75rem; font-size:0.65rem; border-color:rgba(255,255,255,0.3); color:var(--paper);"
       onclick="showShareModal()">Share ↗</button>
   </div>
@@ -782,31 +791,10 @@ function startSession() {
 }
 
 function fetchSlideCount(embedUrl) {
-  // Extract the presentation ID and use the oEmbed endpoint to get slide count.
-  // This works without any API key for publicly shared presentations.
-  const m = embedUrl.match(/\/presentation\/d\/([a-zA-Z0-9_-]+)/);
-  if (!m) return;
-  const id = m[1];
-  // The /pub?output=svg trick: request each slide until we get a 404.
-  // Simpler: use the thumbnail API which returns metadata.
-  // We'll use a head-request loop on slide thumbnails — fast and keyless.
-  let count = 0;
-  function checkSlide(n) {
-    const img = new Image();
-    img.onload = () => { count = n; checkSlide(n + 1); };
-    img.onerror = () => {
-      if (n > 1) { // at least found slide 1
-        totalSlides = count;
-        // Save to Firebase so viewers know too
-        if (firebaseAvailable && sessionRef) sessionRef.child('totalSlides').set(totalSlides);
-        broadcastSlideChange(sessionCode, currentSlide); // refresh viewers with count
-        updatePresCounter();
-      }
-    };
-    // Google Slides thumbnail URL — works for public decks, no API key needed
-    img.src = `https://docs.google.com/presentation/d/${id}/export/png?pageid=p${n}&scale=0.1`;
-  }
-  checkSlide(1);
+  // CORS prevents us from reading Google Slides responses directly.
+  // The most reliable zero-dependency approach: ask the presenter.
+  // Show a small pill input in the bottom bar for them to type the count.
+  document.getElementById('slide-count-input-wrap').style.display = 'flex';
 }
 
 // ═══════════════════════════════════════════════════════
@@ -881,13 +869,18 @@ let storagePoller = null;
 function startStoragePoller(code) {
   let lastSlide = currentSlide;
   storagePoller = setInterval(() => {
-    const stored = localStorage.getItem(`sa_${code}`);
+    const stored = localStorage.getItem('sa_' + code);
     if (!stored) return;
     try {
       const data = JSON.parse(stored);
       if (data.slide !== lastSlide) {
         lastSlide = data.slide;
         receiveSlideChange(data.slide);
+      }
+      if (data.totalSlides && data.totalSlides !== totalSlides) {
+        totalSlides = data.totalSlides;
+        document.getElementById('view-slide-num').textContent =
+          currentSlide + ' / ' + totalSlides;
       }
     } catch(e) {}
   }, 500);
@@ -897,12 +890,11 @@ function startStoragePoller(code) {
 //  SLIDE CONTROL
 // ═══════════════════════════════════════════════════════
 function goToSlide(iframeEl, slide) {
-  // Browsers won't reload an iframe when only the hash changes, so we must
-  // blank it first, then set the full URL with the new slide hash.
-  const base = slideUrl.split('#')[0];
-  const target = base + '#slide=id.p' + slide;
-  iframeEl.src = 'about:blank';
-  setTimeout(() => { iframeEl.src = target; }, 30);
+  // Browsers cache-match iframes by full URL including hash.
+  // Changing only the hash does NOT cause a reload.
+  // Fix: append a unique _t= query param so every navigation is a genuinely new URL.
+  const base = slideUrl.split('?')[0];
+  iframeEl.src = base + '?start=false&loop=false&delayms=60000&rm=minimal&slide=id.p' + slide + '&_t=' + Date.now();
 }
 
 function loadPresenterSlide(slide) {
@@ -951,6 +943,25 @@ function updatePresCounter() {
 function updateViewerCount() {
   const el = document.getElementById('viewers-count');
   if (el) el.textContent = `${viewersOnline} viewer${viewersOnline !== 1 ? 's' : ''}`;
+}
+
+function setTotalSlides(n) {
+  if (!n || n < 1) return;
+  totalSlides = n;
+  updatePresCounter();
+  // Sync to viewers via Firebase
+  if (firebaseAvailable && sessionRef) sessionRef.child('totalSlides').set(totalSlides);
+  // Also broadcast via localStorage for same-device viewers
+  if (sessionCode) {
+    const stored = localStorage.getItem('sa_' + sessionCode);
+    if (stored) {
+      try {
+        const data = JSON.parse(stored);
+        data.totalSlides = totalSlides;
+        localStorage.setItem('sa_' + sessionCode, JSON.stringify(data));
+      } catch(e) {}
+    }
+  }
 }
 
 // ═══════════════════════════════════════════════════════
