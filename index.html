@@ -781,7 +781,8 @@ function startSession() {
 
   // UI
   document.getElementById('pres-code-display').textContent = sessionCode;
-  loadPresenterSlide(currentSlide);
+  initSlideIframe('pres-iframe', currentSlide);
+  updatePresCounter();
   showScreen('presenter');
   updateViewerCount();
   updateShareModal();
@@ -859,9 +860,10 @@ function connectViewer(code, url, slide) {
   // LocalStorage polling fallback (for same-device use)
   startStoragePoller(code);
 
-  loadViewerSlide(currentSlide);
+  initSlideIframe('view-iframe', currentSlide);
   showScreen('viewer');
-  document.getElementById('view-slide-num').textContent = currentSlide;
+  document.getElementById('view-slide-num').textContent =
+    totalSlides ? currentSlide + ' / ' + totalSlides : 'Slide ' + currentSlide;
 }
 
 // Poll localStorage for changes (same-device fallback)
@@ -889,39 +891,80 @@ function startStoragePoller(code) {
 // ═══════════════════════════════════════════════════════
 //  SLIDE CONTROL
 // ═══════════════════════════════════════════════════════
-function goToSlide(iframeEl, slide) {
-  // Most reliable cross-browser method: replace the iframe element entirely.
-  // Simply changing .src doesn't work because browsers won't reload when only
-  // the query params change if the navigation is intercepted by the embed app.
-  // Creating a new element forces a clean load every time.
-  const parent = iframeEl.parentNode;
-  const sibling = iframeEl.nextSibling;
-  const id = iframeEl.id;
-  const cls = iframeEl.className;
+// ── iframe registry: track iframe elements by id ──
+const iframeRegistry = {};
 
-  parent.removeChild(iframeEl);
+function getOrCreateIframe(frameId) {
+  return document.getElementById(frameId);
+}
 
-  const newFrame = document.createElement('iframe');
-  newFrame.id = id;
-  newFrame.className = cls;
-  newFrame.setAttribute('allowfullscreen', '');
+function initSlideIframe(frameId, slide) {
+  // Load the iframe for the first time at the given slide.
+  // Google Slides embed DOES support ?slide=id.pN on initial load.
+  const iframe = document.getElementById(frameId);
   const base = slideUrl.split('?')[0].split('#')[0];
-  // slide=id.pN is a supported query param on the /embed endpoint
-  newFrame.src = base + '?rm=minimal&start=false&loop=false&delayms=60000&slide=id.p' + slide;
+  iframe.src = base + '?rm=minimal&start=false&loop=false&delayms=60000&slide=id.p' + slide;
+  iframeRegistry[frameId] = { currentSlide: slide };
+}
 
-  if (sibling) parent.insertBefore(newFrame, sibling);
-  else parent.appendChild(newFrame);
+function goToSlide(frameId, slide) {
+  const iframe = document.getElementById(frameId);
+  if (!iframe) return;
+
+  const reg = iframeRegistry[frameId] || {};
+  const base = slideUrl.split('?')[0].split('#')[0];
+
+  if (!reg.currentSlide) {
+    // First load
+    iframe.src = base + '?rm=minimal&start=false&loop=false&delayms=60000&slide=id.p' + slide;
+    iframeRegistry[frameId] = { currentSlide: slide };
+    return;
+  }
+
+  const delta = slide - reg.currentSlide;
+  iframeRegistry[frameId].currentSlide = slide;
+
+  if (delta === 0) return;
+
+  // Strategy 1: postMessage with the documented Google Slides embed API
+  // The iframe accepts {type:'sld', value: zeroBasedIndex} to jump to a slide,
+  // and arrow-key simulation for next/prev.
+  try {
+    // Jump directly via postMessage (0-indexed)
+    iframe.contentWindow.postMessage(
+      JSON.stringify({ type: 'sld', value: slide - 1 }),
+      'https://docs.google.com'
+    );
+  } catch(e) {}
+
+  // Strategy 2: simulate arrow keys inside the iframe as fallback.
+  // We focus the iframe and dispatch keyboard events.
+  const key = delta > 0 ? 'ArrowRight' : 'ArrowLeft';
+  const steps = Math.abs(delta);
+
+  iframe.focus();
+  let i = 0;
+  function sendKey() {
+    if (i >= steps) return;
+    try {
+      iframe.contentWindow.dispatchEvent(new KeyboardEvent('keydown', {
+        key: key, code: key, keyCode: delta > 0 ? 39 : 37,
+        bubbles: true, cancelable: true
+      }));
+    } catch(e) {}
+    i++;
+    if (i < steps) setTimeout(sendKey, 120);
+  }
+  sendKey();
 }
 
 function loadPresenterSlide(slide) {
-  // Re-query each time since goToSlide replaces the iframe element
-  goToSlide(document.getElementById('pres-iframe'), slide);
+  goToSlide('pres-iframe', slide);
   updatePresCounter();
 }
 
 function loadViewerSlide(slide) {
-  // Re-query each time since goToSlide replaces the iframe element
-  goToSlide(document.getElementById('view-iframe'), slide);
+  goToSlide('view-iframe', slide);
   document.getElementById('view-slide-num').textContent =
     totalSlides ? slide + ' / ' + totalSlides : 'Slide ' + slide;
 }
