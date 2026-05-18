@@ -15,448 +15,108 @@
     --ink: #0f0e0c;
     --paper: #f5f1ea;
     --accent: #e85d2f;
-    --accent2: #2f7ae8;
     --muted: #8c8880;
     --border: #d6d0c6;
     --card: #fffdf8;
   }
 
-  html, body {
-    height: 100%;
-    background: var(--paper);
-    color: var(--ink);
-    font-family: 'DM Mono', monospace;
-  }
+  html, body { height: 100%; background: var(--paper); color: var(--ink); font-family: 'DM Mono', monospace; }
 
-  /* ── SCREENS ── */
   .screen { display: none; min-height: 100vh; }
   .screen.active { display: flex; flex-direction: column; }
 
-  /* ── HOME ── */
-  #home {
-    align-items: center;
-    justify-content: center;
-    padding: 2rem;
-    gap: 0;
-  }
+  /* HOME */
+  #home { align-items: center; justify-content: center; padding: 2rem; gap: 0; }
 
-  .home-logo {
-    font-family: 'DM Serif Display', serif;
-    font-size: clamp(3rem, 10vw, 6rem);
-    line-height: 1;
-    letter-spacing: -0.03em;
-    color: var(--ink);
-    position: relative;
-  }
+  .home-logo { font-family: 'DM Serif Display', serif; font-size: clamp(3rem, 10vw, 6rem); line-height: 1; letter-spacing: -0.03em; }
   .home-logo span { color: var(--accent); font-style: italic; }
 
-  .home-tagline {
-    font-size: 0.8rem;
-    color: var(--muted);
-    margin-top: 0.5rem;
-    letter-spacing: 0.12em;
-    text-transform: uppercase;
-    text-align: center;
-    max-width: 280px;
-  }
+  .home-tagline { font-size: 0.8rem; color: var(--muted); margin-top: 0.5rem; letter-spacing: 0.12em; text-transform: uppercase; text-align: center; max-width: 280px; }
 
-  .home-actions {
-    margin-top: 2.5rem;
-    display: flex;
-    flex-direction: column;
-    gap: 1rem;
-    width: 100%;
-    max-width: 320px;
-  }
+  .home-actions { margin-top: 2.5rem; display: flex; flex-direction: column; gap: 1rem; width: 100%; max-width: 320px; }
 
-  .btn {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 0.5rem;
-    padding: 0.85rem 1.5rem;
-    border: 1.5px solid var(--ink);
-    background: transparent;
-    color: var(--ink);
-    font-family: 'DM Mono', monospace;
-    font-size: 0.8rem;
-    font-weight: 500;
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
-    cursor: pointer;
-    transition: all 0.15s ease;
-    text-decoration: none;
-    border-radius: 2px;
-  }
+  /* SETUP / JOIN */
+  #setup, #join { align-items: center; justify-content: center; padding: 2rem; gap: 1.5rem; }
+
+  .setup-header { text-align: center; }
+  .setup-header h2 { font-family: 'DM Serif Display', serif; font-size: 2rem; letter-spacing: -0.02em; }
+  .setup-header p { font-size: 0.75rem; color: var(--muted); margin-top: 0.4rem; line-height: 1.6; }
+
+  .setup-card { width: 100%; max-width: 420px; background: var(--card); border: 1.5px solid var(--border); border-radius: 4px; padding: 1.5rem; display: flex; flex-direction: column; gap: 1rem; }
+
+  .field-label { font-size: 0.7rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); margin-bottom: 0.35rem; }
+
+  .field-input { width: 100%; padding: 0.7rem 0.85rem; border: 1.5px solid var(--border); background: var(--paper); font-family: 'DM Mono', monospace; font-size: 0.8rem; color: var(--ink); border-radius: 2px; outline: none; transition: border-color 0.15s; }
+  .field-input:focus { border-color: var(--ink); }
+
+  .hint { font-size: 0.72rem; color: var(--muted); line-height: 1.8; }
+
+  /* BUTTONS */
+  .btn { display: flex; align-items: center; justify-content: center; gap: 0.5rem; padding: 0.85rem 1.5rem; border: 1.5px solid var(--ink); background: transparent; color: var(--ink); font-family: 'DM Mono', monospace; font-size: 0.8rem; font-weight: 500; letter-spacing: 0.08em; text-transform: uppercase; cursor: pointer; transition: all 0.15s ease; border-radius: 2px; }
   .btn:hover { background: var(--ink); color: var(--paper); }
   .btn.primary { background: var(--ink); color: var(--paper); }
   .btn.primary:hover { background: var(--accent); border-color: var(--accent); }
   .btn.danger { border-color: #c0392b; color: #c0392b; }
   .btn.danger:hover { background: #c0392b; color: white; }
-  .btn:disabled { opacity: 0.4; cursor: not-allowed; pointer-events: none; }
+  .btn:disabled { opacity: 0.5; cursor: default; pointer-events: none; }
 
-  /* ── SETUP (PRESENTER) ── */
-  #setup {
-    align-items: center;
-    justify-content: center;
-    padding: 2rem;
-    gap: 1.5rem;
-  }
+  .back-link { font-size: 0.72rem; color: var(--muted); background: none; border: none; cursor: pointer; font-family: 'DM Mono', monospace; letter-spacing: 0.06em; text-decoration: underline; text-underline-offset: 3px; }
+  .back-link:hover { color: var(--ink); }
 
-  .setup-header {
-    text-align: center;
-  }
-  .setup-header h2 {
-    font-family: 'DM Serif Display', serif;
-    font-size: 2rem;
-    letter-spacing: -0.02em;
-  }
-  .setup-header p {
-    font-size: 0.75rem;
-    color: var(--muted);
-    margin-top: 0.4rem;
-    line-height: 1.6;
-  }
+  .error-msg { font-size: 0.72rem; color: #c0392b; background: #fdf0ee; border: 1px solid #f5c6c0; border-radius: 2px; padding: 0.5rem 0.75rem; display: none; }
+  .error-msg.visible { display: block; }
 
-  .setup-card {
-    width: 100%;
-    max-width: 480px;
-    background: var(--card);
-    border: 1.5px solid var(--border);
-    border-radius: 4px;
-    padding: 1.5rem;
-    display: flex;
-    flex-direction: column;
-    gap: 1rem;
-  }
+  /* PRESENTER / VIEWER */
+  #presenter, #viewer { height: 100vh; overflow: hidden; }
 
-  .field-label {
-    font-size: 0.7rem;
-    letter-spacing: 0.1em;
-    text-transform: uppercase;
-    color: var(--muted);
-    margin-bottom: 0.35rem;
-  }
-
-  .field-input {
-    width: 100%;
-    padding: 0.7rem 0.85rem;
-    border: 1.5px solid var(--border);
-    background: var(--paper);
-    font-family: 'DM Mono', monospace;
-    font-size: 0.8rem;
-    color: var(--ink);
-    border-radius: 2px;
-    transition: border-color 0.15s;
-    outline: none;
-  }
-  .field-input:focus { border-color: var(--ink); }
-
-  .hint {
-    font-size: 0.7rem;
-    color: var(--muted);
-    line-height: 1.5;
-  }
-  .hint a { color: var(--accent2); }
-
-  .step-num {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    width: 1.4rem;
-    height: 1.4rem;
-    border: 1.5px solid var(--muted);
-    border-radius: 50%;
-    font-size: 0.65rem;
-    color: var(--muted);
-    flex-shrink: 0;
-  }
-
-  .step-row {
-    display: flex;
-    gap: 0.75rem;
-    align-items: flex-start;
-  }
-
-  /* ── JOIN ── */
-  #join {
-    align-items: center;
-    justify-content: center;
-    padding: 2rem;
-    gap: 1.5rem;
-  }
-
-  /* ── PRESENTER ── */
-  #presenter {
-    flex-direction: column;
-    height: 100vh;
-    overflow: hidden;
-  }
-
-  /* ── VIEWER ── */
-  #viewer {
-    flex-direction: column;
-    height: 100vh;
-    overflow: hidden;
-  }
-
-  /* ── SHARED PRESENTATION UI ── */
-  .pres-topbar {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 0.6rem 1rem;
-    background: var(--ink);
-    color: var(--paper);
-    flex-shrink: 0;
-    gap: 1rem;
-  }
-
-  .pres-title {
-    font-family: 'DM Serif Display', serif;
-    font-size: 1.1rem;
-    letter-spacing: -0.01em;
-    font-style: italic;
-  }
+  .pres-topbar { display: flex; align-items: center; justify-content: space-between; padding: 0.6rem 1rem; background: var(--ink); color: var(--paper); flex-shrink: 0; gap: 1rem; }
+  .pres-title { font-family: 'DM Serif Display', serif; font-size: 1.1rem; letter-spacing: -0.01em; font-style: italic; }
   .pres-title span { color: var(--accent); }
 
-  .pres-info {
-    font-size: 0.65rem;
-    letter-spacing: 0.1em;
-    text-transform: uppercase;
-    color: rgba(255,255,255,0.5);
-    white-space: nowrap;
-  }
-
-  .pres-badge {
-    font-size: 0.65rem;
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
-    padding: 0.25rem 0.6rem;
-    border: 1px solid;
-    border-radius: 2px;
-  }
+  .pres-badge { font-size: 0.65rem; letter-spacing: 0.08em; text-transform: uppercase; padding: 0.25rem 0.6rem; border: 1px solid; border-radius: 2px; }
   .pres-badge.presenter-badge { color: var(--accent); border-color: var(--accent); }
   .pres-badge.viewer-badge { color: #7ecb9a; border-color: #7ecb9a; }
 
-  .slide-area {
-    flex: 1;
-    position: relative;
-    overflow: hidden;
-    background: #1a1a1a;
-  }
+  .session-code { font-size: 0.7rem; letter-spacing: 0.15em; color: rgba(255,255,255,0.6); }
+  .session-code strong { color: var(--paper); letter-spacing: 0.2em; }
 
-  .slide-area iframe {
-    width: 100%;
-    height: 100%;
-    border: none;
-    display: block;
-  }
+  /* VIDEO */
+  .video-area { flex: 1; background: #0a0a0a; position: relative; display: flex; align-items: center; justify-content: center; overflow: hidden; }
+  .video-area video { width: 100%; height: 100%; object-fit: contain; display: block; }
 
-  .slide-overlay {
-    position: absolute;
-    inset: 0;
-    z-index: 10;
-    cursor: pointer;
-    background: transparent;
-  }
+  .stream-placeholder { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 1rem; color: rgba(255,255,255,0.3); text-align: center; padding: 2rem; pointer-events: none; }
+  .stream-placeholder .icon { font-size: 3rem; opacity: 0.5; }
+  .stream-placeholder p { font-size: 0.75rem; letter-spacing: 0.06em; text-transform: uppercase; line-height: 1.9; }
+  .stream-placeholder.hidden { display: none; }
 
-  /* Viewer overlay blocks touch from interacting with iframe */
-  .viewer-overlay-msg {
-    position: absolute;
-    bottom: 1rem;
-    left: 50%;
-    transform: translateX(-50%);
-    background: rgba(0,0,0,0.6);
-    color: rgba(255,255,255,0.7);
-    font-size: 0.65rem;
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
-    padding: 0.4rem 0.8rem;
-    border-radius: 2px;
-    pointer-events: none;
-    white-space: nowrap;
-  }
+  /* BARS */
+  .pres-bottombar { display: flex; align-items: center; justify-content: space-between; padding: 0.75rem 1rem; background: var(--ink); flex-shrink: 0; gap: 0.75rem; }
+  .viewer-bottombar { display: flex; align-items: center; justify-content: space-between; padding: 0.6rem 1rem; background: var(--ink); flex-shrink: 0; }
 
-  .pres-bottombar {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 0.75rem 1rem;
-    background: var(--ink);
-    flex-shrink: 0;
-    gap: 0.75rem;
-  }
+  .viewers-count { font-size: 0.65rem; color: #7ecb9a; letter-spacing: 0.08em; text-transform: uppercase; display: flex; align-items: center; gap: 0.4rem; }
+  .viewers-count::before { content: ''; width: 6px; height: 6px; background: #7ecb9a; border-radius: 50%; display: inline-block; }
 
-  .slide-counter {
-    font-size: 0.7rem;
-    color: rgba(255,255,255,0.5);
-    letter-spacing: 0.08em;
-    min-width: 70px;
-    text-align: center;
-  }
-
-  .nav-btns {
-    display: flex;
-    gap: 0.5rem;
-  }
-
-  .nav-btn {
-    padding: 0.5rem 1.25rem;
-    border: 1.5px solid rgba(255,255,255,0.3);
-    background: transparent;
-    color: var(--paper);
-    font-family: 'DM Mono', monospace;
-    font-size: 0.75rem;
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
-    cursor: pointer;
-    border-radius: 2px;
-    transition: all 0.15s;
-  }
-  .nav-btn:hover { background: rgba(255,255,255,0.1); }
-  .nav-btn:active { background: rgba(255,255,255,0.2); }
-  .nav-btn:disabled { opacity: 0.25; cursor: default; }
-
-  .viewers-count {
-    font-size: 0.65rem;
-    color: #7ecb9a;
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
-    display: flex;
-    align-items: center;
-    gap: 0.4rem;
-  }
-  .viewers-count::before {
-    content: '';
-    width: 6px;
-    height: 6px;
-    background: #7ecb9a;
-    border-radius: 50%;
-    display: inline-block;
-    animation: pulse 2s infinite;
-  }
-  @keyframes pulse {
-    0%, 100% { opacity: 1; }
-    50% { opacity: 0.3; }
-  }
-
-  .session-code {
-    font-size: 0.7rem;
-    letter-spacing: 0.15em;
-    color: rgba(255,255,255,0.6);
-  }
-  .session-code strong {
-    color: var(--paper);
-    letter-spacing: 0.2em;
-  }
-
-  /* ── LOADING / STATUS ── */
-  .status-pill {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.4rem;
-    font-size: 0.7rem;
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
-    color: var(--muted);
-  }
-  .status-dot {
-    width: 6px;
-    height: 6px;
-    border-radius: 50%;
-    background: var(--muted);
-  }
+  .status-pill { display: flex; align-items: center; gap: 0.5rem; font-size: 0.65rem; letter-spacing: 0.08em; text-transform: uppercase; }
+  .status-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--muted); flex-shrink: 0; }
   .status-dot.green { background: #7ecb9a; animation: pulse 2s infinite; }
   .status-dot.orange { background: #e8a02f; animation: pulse 1s infinite; }
+  .status-dot.red { background: #e85d2f; }
+  @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.3; } }
 
-  /* ── MODAL ── */
-  .modal-bg {
-    display: none;
-    position: fixed;
-    inset: 0;
-    background: rgba(15,14,12,0.8);
-    z-index: 100;
-    align-items: center;
-    justify-content: center;
-    padding: 1.5rem;
-  }
+  /* MODAL */
+  .modal-bg { display: none; position: fixed; inset: 0; background: rgba(15,14,12,0.8); z-index: 100; align-items: center; justify-content: center; padding: 1.5rem; }
   .modal-bg.open { display: flex; }
+  .modal { background: var(--card); border: 1.5px solid var(--border); border-radius: 4px; padding: 2rem; width: 100%; max-width: 360px; display: flex; flex-direction: column; gap: 1.25rem; }
+  .modal h3 { font-family: 'DM Serif Display', serif; font-size: 1.5rem; letter-spacing: -0.02em; }
+  .modal-code { text-align: center; font-size: 2.5rem; letter-spacing: 0.3em; font-weight: 500; background: var(--paper); border: 1.5px dashed var(--border); padding: 1rem; border-radius: 2px; }
+  .modal p { font-size: 0.75rem; color: var(--muted); line-height: 1.6; }
 
-  .modal {
-    background: var(--card);
-    border: 1.5px solid var(--border);
-    border-radius: 4px;
-    padding: 2rem;
-    width: 100%;
-    max-width: 360px;
-    display: flex;
-    flex-direction: column;
-    gap: 1.25rem;
-  }
-
-  .modal h3 {
-    font-family: 'DM Serif Display', serif;
-    font-size: 1.5rem;
-    letter-spacing: -0.02em;
-  }
-
-  .modal-code {
-    text-align: center;
-    font-size: 2.5rem;
-    letter-spacing: 0.3em;
-    font-weight: 500;
-    color: var(--ink);
-    background: var(--paper);
-    border: 1.5px dashed var(--border);
-    padding: 1rem;
-    border-radius: 2px;
-  }
-
-  .modal p {
-    font-size: 0.75rem;
-    color: var(--muted);
-    line-height: 1.6;
-  }
-
-  .back-link {
-    font-size: 0.72rem;
-    color: var(--muted);
-    background: none;
-    border: none;
-    cursor: pointer;
-    font-family: 'DM Mono', monospace;
-    letter-spacing: 0.06em;
-    text-decoration: underline;
-    text-underline-offset: 3px;
-  }
-  .back-link:hover { color: var(--ink); }
-
-  .error-msg {
-    font-size: 0.72rem;
-    color: #c0392b;
-    background: #fdf0ee;
-    border: 1px solid #f5c6c0;
-    border-radius: 2px;
-    padding: 0.5rem 0.75rem;
-    display: none;
-  }
-  .error-msg.visible { display: block; }
-
-  /* Synced indicator for viewer */
-  .sync-status {
-    display: flex;
-    align-items: center;
-    gap: 0.4rem;
-    font-size: 0.65rem;
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
-  }
+  #share-screen-btn.live { background: #c0392b !important; border-color: #c0392b !important; color: white !important; }
 </style>
 </head>
 <body>
 
-<!-- ═══════════════════ HOME ═══════════════════ -->
+<!-- HOME -->
 <div id="home" class="screen active">
   <div class="home-logo">Slide<span>Along</span></div>
   <div class="home-tagline">Present anywhere. Follow on any device.</div>
@@ -466,123 +126,104 @@
   </div>
 </div>
 
-<!-- ═══════════════════ SETUP (PRESENTER) ═══════════════════ -->
+<!-- SETUP -->
 <div id="setup" class="screen">
   <div class="setup-header">
     <h2>New Session</h2>
-    <p>You'll control the slides. Others follow along on their devices.</p>
+    <p>You'll share your screen. Viewers follow live.</p>
   </div>
-
   <div class="setup-card">
-    <div>
-      <div class="field-label">Google Slides URL</div>
-      <input class="field-input" id="slides-url" type="url"
-        placeholder="https://docs.google.com/presentation/d/…" />
-    </div>
-
     <div class="hint">
-      Paste any Google Slides link — the share link, edit link, or published embed URL all work.
+      Works with any presentation app — Google Slides, Canva, PowerPoint, Keynote, PDF.
+      All animations and transitions are preserved exactly as-is because viewers watch your actual screen.
     </div>
-
     <div id="setup-error" class="error-msg"></div>
-
-    <div>
-      <div class="field-label">Your Name (optional)</div>
-      <input class="field-input" id="presenter-name" type="text" placeholder="e.g. Alex" />
-    </div>
-
     <button class="btn primary" onclick="startSession()">Create Session →</button>
     <button class="back-link" onclick="showScreen('home')">← Back</button>
   </div>
 </div>
 
-<!-- ═══════════════════ JOIN (VIEWER) ═══════════════════ -->
+<!-- JOIN -->
 <div id="join" class="screen">
   <div class="setup-header">
     <h2>Join Session</h2>
     <p>Enter the 6-digit code from the presenter.</p>
   </div>
-
   <div class="setup-card">
     <div>
       <div class="field-label">Session Code</div>
       <input class="field-input" id="join-code" type="text" maxlength="6"
-        placeholder="ABC123" style="text-transform:uppercase; letter-spacing:0.3em; font-size:1.2rem; text-align:center;"
+        placeholder="ABC123"
+        style="text-transform:uppercase;letter-spacing:0.3em;font-size:1.2rem;text-align:center;"
         oninput="this.value=this.value.toUpperCase().replace(/[^A-Z0-9]/g,'')" />
     </div>
-
     <div id="join-error" class="error-msg"></div>
-
     <button class="btn primary" onclick="joinSession()">Join →</button>
     <button class="back-link" onclick="showScreen('home')">← Back</button>
   </div>
 </div>
 
-<!-- ═══════════════════ PRESENTER VIEW ═══════════════════ -->
+<!-- PRESENTER -->
 <div id="presenter" class="screen">
   <div class="pres-topbar">
     <div class="pres-title">Slide<span>Along</span></div>
-    <div style="display:flex; align-items:center; gap:0.75rem;">
+    <div style="display:flex;align-items:center;gap:0.75rem;">
       <div class="session-code">Code: <strong id="pres-code-display">——</strong></div>
       <div class="pres-badge presenter-badge">Presenter</div>
     </div>
-    <button class="btn danger" style="padding:0.35rem 0.75rem; font-size:0.65rem;" onclick="endSession()">End</button>
+    <button class="btn danger" style="padding:0.35rem 0.75rem;font-size:0.65rem;" onclick="endSession()">End</button>
   </div>
 
-  <div class="slide-area" id="pres-slide-area">
-    <iframe id="pres-iframe" allowfullscreen></iframe>
+  <div class="video-area">
+    <video id="pres-video" autoplay muted playsinline></video>
+    <div class="stream-placeholder" id="pres-placeholder">
+      <div class="icon">🖥</div>
+      <p>Click "Share Screen" below<br>then pick your slides tab or window</p>
+    </div>
   </div>
 
   <div class="pres-bottombar">
     <div class="viewers-count" id="viewers-count">0 viewers</div>
-
-    <div class="nav-btns">
-      <button class="nav-btn" id="btn-prev" onclick="changeSlide(-1)">← Prev</button>
-      <div class="slide-counter" id="pres-counter">—</div>
-      <button class="nav-btn" id="btn-next" onclick="changeSlide(1)">Next →</button>
-    </div>
-
-    <div id="slide-count-input-wrap" style="display:none; align-items:center; gap:0.4rem;">
-      <span style="font-size:0.65rem; color:rgba(255,255,255,0.4); letter-spacing:0.06em; white-space:nowrap;">Total slides:</span>
-      <input id="total-slides-input" type="number" min="1" max="200"
-        style="width:3.5rem; padding:0.3rem 0.4rem; background:rgba(255,255,255,0.08); border:1px solid rgba(255,255,255,0.2); color:white; font-family:'DM Mono',monospace; font-size:0.75rem; border-radius:2px; text-align:center;"
-        placeholder="?"
-        onchange="setTotalSlides(parseInt(this.value))"
-        onkeydown="if(event.key==='Enter') setTotalSlides(parseInt(this.value))" />
-    </div>
-
-    <button class="btn" style="padding:0.4rem 0.75rem; font-size:0.65rem; border-color:rgba(255,255,255,0.3); color:var(--paper);"
-      onclick="showShareModal()">Share ↗</button>
+    <button class="btn primary" id="share-screen-btn" onclick="startScreenShare()">Share Screen</button>
+    <button class="btn" style="padding:0.4rem 0.75rem;font-size:0.65rem;border-color:rgba(255,255,255,0.3);color:var(--paper);"
+      onclick="showShareModal()">Invite ↗</button>
   </div>
 </div>
 
-<!-- ═══════════════════ VIEWER VIEW ═══════════════════ -->
+<!-- VIEWER -->
 <div id="viewer" class="screen">
   <div class="pres-topbar">
     <div class="pres-title">Slide<span>Along</span></div>
-    <div style="display:flex; align-items:center; gap:0.75rem;">
-      <div class="sync-status">
-        <div class="status-dot green" id="sync-dot"></div>
-        <span id="sync-label" style="color:rgba(255,255,255,0.5); font-size:0.65rem; letter-spacing:0.08em; text-transform:uppercase;">Synced</span>
-      </div>
-      <div class="pres-badge viewer-badge">Viewer</div>
+    <div class="status-pill" style="color:rgba(255,255,255,0.5);">
+      <div class="status-dot orange" id="conn-dot"></div>
+      <span id="conn-label">Connecting…</span>
     </div>
     <button class="back-link" style="color:rgba(255,255,255,0.4);" onclick="leaveSession()">Leave</button>
   </div>
 
-  <div class="slide-area" id="view-slide-area">
-    <iframe id="view-iframe" allowfullscreen></iframe>
-    <div class="slide-overlay" title="Controlled by presenter"></div>
-    <div class="viewer-overlay-msg">Following presenter · slide <span id="view-slide-num">—</span></div>
+  <div class="video-area">
+    <video id="view-video" autoplay playsinline></video>
+    <div class="stream-placeholder" id="view-placeholder">
+      <div class="icon">📡</div>
+      <p>Waiting for presenter<br>to share their screen…</p>
+    </div>
+  </div>
+
+  <div class="viewer-bottombar">
+    <div class="pres-badge viewer-badge">Viewer</div>
+    <div class="status-pill">
+      <div class="status-dot" id="view-dot"></div>
+      <span id="view-label" style="color:rgba(255,255,255,0.4);font-size:0.65rem;letter-spacing:0.08em;text-transform:uppercase;">Not connected</span>
+    </div>
   </div>
 </div>
 
-<!-- ═══════════════════ SHARE MODAL ═══════════════════ -->
+<!-- SHARE MODAL -->
 <div class="modal-bg" id="share-modal">
   <div class="modal">
-    <h3>Share this Session</h3>
+    <h3>Invite Viewers</h3>
     <div class="modal-code" id="modal-code">——</div>
-    <p>Tell your audience to go to <strong id="modal-url-text"></strong> and enter this code — or share the direct link below.</p>
+    <p>Share this link with your audience. They open it, enter the code, and watch your screen live in real time.</p>
     <input class="field-input" id="share-link-input" readonly onclick="this.select()" />
     <button class="btn primary" onclick="copyShareLink()">Copy Link</button>
     <button class="back-link" onclick="closeModal()">Close</button>
@@ -590,10 +231,9 @@
 </div>
 
 <script>
-// ═══════════════════════════════════════════════════════
-//  FIREBASE CONFIG — using a public demo project
-//  Users can replace with their own for production use
-// ═══════════════════════════════════════════════════════
+// ═══════════════════════════════════════════════
+//  FIREBASE CONFIG — replace with your own
+// ═══════════════════════════════════════════════
 // For Firebase JS SDK v7.20.0 and later, measurementId is optional
 const firebaseConfig = {
   apiKey: "AIzaSyAvEaYbtuEu-U5K3-YkUfSavIsCM_vdoLE",
@@ -606,201 +246,176 @@ const firebaseConfig = {
   measurementId: "G-727JX1CSBZ"
 };
 
-// ═══════════════════════════════════════════════════════
-//  PEER-TO-PEER FALLBACK via BroadcastChannel (same device / tab demo)
-//  + Firebase for cross-device sync
-// ═══════════════════════════════════════════════════════
-
+// ═══════════════════════════════════════════════
+//  INIT FIREBASE
+// ═══════════════════════════════════════════════
 let db = null;
-let sessionRef = null;
-let presenterRef = null;
-let firebaseAvailable = false;
+let firebaseReady = false;
 
-// Try to init Firebase; fall back to BroadcastChannel if config is demo
-function initFirebase() {
+(function initFirebase() {
+  if (firebaseConfig.databaseURL.includes('slidealong-demo')) return;
   try {
-    // Check if this is the demo config (won't work in prod)
-    if (firebaseConfig.databaseURL.includes('slidealong-demo')) {
-      console.log('Using BroadcastChannel fallback (demo mode)');
-      return false;
-    }
     firebase.initializeApp(firebaseConfig);
     db = firebase.database();
-    firebaseAvailable = true;
-    return true;
-  } catch(e) {
-    return false;
-  }
-}
-initFirebase();
+    firebaseReady = true;
+  } catch(e) { console.error('Firebase init failed:', e); }
+})();
 
-// ── BroadcastChannel (works within same browser / tabs, great for demo) ──
-let bc = null;
+// ═══════════════════════════════════════════════
+//  STATE
+// ═══════════════════════════════════════════════
+let myRole        = null;
+let sessionCode   = null;
+let localStream   = null;
+let peerConns     = {};   // viewerId -> RTCPeerConnection
+let viewerCount   = 0;
 
-// ── State ──
-let myRole = null; // 'presenter' | 'viewer'
-let sessionCode = null;
-let slideUrl = null;
-let currentSlide = 1;
-let totalSlides = null;
-let viewersOnline = 0;
+// Free public STUN servers — no setup needed
+const RTC_CONFIG = {
+  iceServers: [
+    { urls: 'stun:stun.l.google.com:19302' },
+    { urls: 'stun:stun1.l.google.com:19302' }
+  ]
+};
 
-// ═══════════════════════════════════════════════════════
+// ═══════════════════════════════════════════════
 //  NAVIGATION
-// ═══════════════════════════════════════════════════════
+// ═══════════════════════════════════════════════
 function showScreen(id) {
   document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
   document.getElementById(id).classList.add('active');
 }
 
-// ═══════════════════════════════════════════════════════
-//  URL UTILS
-// ═══════════════════════════════════════════════════════
-function toEmbedUrl(raw) {
-  raw = raw.trim();
-  // Extract the presentation ID from any Google Slides URL format:
-  // /presentation/d/ID/edit, /presentation/d/ID/embed, /pub?id=ID, share links, etc.
-  const m = raw.match(/\/presentation\/d\/([a-zA-Z0-9_-]+)/);
-  if (!m) return null;
-  const id = m[1];
-  // Use the /embed URL — the only format Google allows in iframes from external domains.
-  // rm=minimal hides Google chrome, start=false prevents auto-play.
-  return `https://docs.google.com/presentation/d/${id}/embed?start=false&loop=false&delayms=60000&rm=minimal`;
-}
-
-// ═══════════════════════════════════════════════════════
-//  CODE GENERATION
-// ═══════════════════════════════════════════════════════
 function genCode() {
-  const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
-  return Array.from({length: 6}, () => chars[Math.floor(Math.random()*chars.length)]).join('');
+  const c = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+  return Array.from({length:6}, () => c[Math.floor(Math.random()*c.length)]).join('');
 }
 
-// ═══════════════════════════════════════════════════════
-//  SESSION STORAGE (cross-tab via BroadcastChannel + localStorage)
-// ═══════════════════════════════════════════════════════
-function saveSessionToStorage(code, url, slide) {
-  localStorage.setItem('sa_session', JSON.stringify({ code, url, slide, ts: Date.now() }));
-}
-
-function broadcastSlideChange(code, slide) {
-  if (bc) {
-    bc.postMessage({ type: 'slide', code, slide });
-  }
-  // Also save to localStorage for cross-tab detection via storage event
-  localStorage.setItem(`sa_${code}`, JSON.stringify({ slide, ts: Date.now(), url: slideUrl }));
-  saveSessionToStorage(code, slideUrl, slide);
-}
-
-function setupBroadcast(code) {
-  try {
-    bc = new BroadcastChannel(`slidealong_${code}`);
-    bc.onmessage = (e) => {
-      if (e.data.type === 'slide' && e.data.code === code && myRole === 'viewer') {
-        receiveSlideChange(e.data.slide);
-      }
-      if (e.data.type === 'viewer_join' && myRole === 'presenter') {
-        viewersOnline++;
-        updateViewerCount();
-      }
-      if (e.data.type === 'viewer_leave' && myRole === 'presenter') {
-        viewersOnline = Math.max(0, viewersOnline - 1);
-        updateViewerCount();
-      }
-    };
-  } catch(e) {}
-}
-
-// ═══════════════════════════════════════════════════════
-//  FIREBASE SYNC (when available)
-// ═══════════════════════════════════════════════════════
-function setupFirebasePresenter(code, url, slide) {
-  if (!firebaseAvailable) return;
-  sessionRef = db.ref(`sessions/${code}`);
-  sessionRef.set({ url, slide, active: true, ts: Date.now() });
-  // Track viewers
-  const viewersRef = db.ref(`sessions/${code}/viewers`);
-  viewersRef.on('value', snap => {
-    viewersOnline = snap.numChildren ? snap.numChildren() : 0;
-    updateViewerCount();
-  });
-  // Cleanup on disconnect
-  sessionRef.child('active').onDisconnect().set(false);
-}
-
-function setupFirebaseViewer(code, callback) {
-  if (!firebaseAvailable) return;
-  sessionRef = db.ref(`sessions/${code}`);
-  // Register as viewer
-  const myViewerRef = db.ref(`sessions/${code}/viewers`).push();
-  myViewerRef.set({ joined: Date.now() });
-  myViewerRef.onDisconnect().remove();
-  // Listen for slide changes
-  sessionRef.child('slide').on('value', snap => {
-    if (snap.val() !== null) callback(snap.val());
-  });
-  // Listen for total slide count
-  sessionRef.child('totalSlides').on('value', snap => {
-    if (snap.val()) {
-      totalSlides = snap.val();
-      document.getElementById('view-slide-num').textContent =
-        currentSlide + ' / ' + totalSlides;
-    }
-  });
-}
-
-function pushSlideFirebase(slide) {
-  if (!firebaseAvailable || !sessionRef) return;
-  sessionRef.child('slide').set(slide);
-}
-
-// ═══════════════════════════════════════════════════════
-//  START SESSION (PRESENTER)
-// ═══════════════════════════════════════════════════════
+// ═══════════════════════════════════════════════
+//  START SESSION — PRESENTER
+// ═══════════════════════════════════════════════
 function startSession() {
-  const rawUrl = document.getElementById('slides-url').value;
   const errEl = document.getElementById('setup-error');
   errEl.classList.remove('visible');
 
-  const embed = toEmbedUrl(rawUrl);
-  if (!embed) {
-    errEl.textContent = 'Could not parse URL. Please use a Google Slides link.';
+  if (!firebaseReady) {
+    errEl.textContent = 'Please add your Firebase config to the HTML first — cross-device streaming requires it.';
     errEl.classList.add('visible');
     return;
   }
 
-  slideUrl = embed;
   sessionCode = genCode();
   myRole = 'presenter';
-  currentSlide = 1;
 
-  // Setup comms
-  setupBroadcast(sessionCode);
-  setupFirebasePresenter(sessionCode, slideUrl, currentSlide);
-  broadcastSlideChange(sessionCode, currentSlide);
+  // Register session in Firebase
+  const sessRef = db.ref(`sessions/${sessionCode}`);
+  sessRef.set({ active: true, ts: Date.now() });
+  sessRef.child('active').onDisconnect().set(false);
 
-  // UI
+  // When a viewer registers, create a peer connection for them
+  sessRef.child('viewers').on('child_added', snap => {
+    createPresenterPeer(snap.key);
+  });
+
+  // When a viewer disconnects, clean up
+  sessRef.child('viewers').on('child_removed', snap => {
+    const vid = snap.key;
+    if (peerConns[vid]) { peerConns[vid].close(); delete peerConns[vid]; }
+    viewerCount = Math.max(0, viewerCount - 1);
+    refreshViewerCount();
+  });
+
   document.getElementById('pres-code-display').textContent = sessionCode;
-  initSlideIframe('pres-iframe', currentSlide);
-  updatePresCounter();
-  showScreen('presenter');
-  updateViewerCount();
   updateShareModal();
-
-  // Fetch total slide count (works for public presentations)
-  fetchSlideCount(slideUrl);
+  showScreen('presenter');
 }
 
-function fetchSlideCount(embedUrl) {
-  // CORS prevents us from reading Google Slides responses directly.
-  // The most reliable zero-dependency approach: ask the presenter.
-  // Show a small pill input in the bottom bar for them to type the count.
-  document.getElementById('slide-count-input-wrap').style.display = 'flex';
+// ═══════════════════════════════════════════════
+//  SCREEN SHARE — PRESENTER
+// ═══════════════════════════════════════════════
+async function startScreenShare() {
+  try {
+    localStream = await navigator.mediaDevices.getDisplayMedia({
+      video: { frameRate: 30, cursor: 'always' },
+      audio: false
+    });
+
+    // Preview for presenter
+    const vid = document.getElementById('pres-video');
+    vid.srcObject = localStream;
+    document.getElementById('pres-placeholder').classList.add('hidden');
+
+    const btn = document.getElementById('share-screen-btn');
+    btn.textContent = '● Live';
+    btn.classList.add('live');
+    btn.disabled = true;
+
+    // Connect any viewers already waiting
+    Object.keys(peerConns).forEach(vid => addTracksToConn(peerConns[vid]));
+
+    // If presenter stops via browser's built-in button
+    localStream.getVideoTracks()[0].onended = () => endSession();
+
+  } catch(e) {
+    if (e.name !== 'NotAllowedError') alert('Screen share failed: ' + e.message);
+  }
 }
 
-// ═══════════════════════════════════════════════════════
-//  JOIN SESSION (VIEWER)
-// ═══════════════════════════════════════════════════════
+function addTracksToConn(pc) {
+  if (!localStream || !pc) return;
+  // Only add if not already added
+  const senders = pc.getSenders();
+  localStream.getTracks().forEach(track => {
+    if (!senders.find(s => s.track === track)) pc.addTrack(track, localStream);
+  });
+}
+
+// ═══════════════════════════════════════════════
+//  WEBRTC PRESENTER SIDE
+//  1. Viewer registers in Firebase
+//  2. Presenter sees child_added, creates RTCPeerConnection
+//  3. Presenter creates offer, writes to Firebase
+//  4. Viewer reads offer, creates answer, writes back
+//  5. Both exchange ICE candidates via Firebase
+//  6. WebRTC handshake completes, video flows P2P
+// ═══════════════════════════════════════════════
+async function createPresenterPeer(viewerId) {
+  const pc = new RTCPeerConnection(RTC_CONFIG);
+  peerConns[viewerId] = pc;
+  viewerCount++;
+  refreshViewerCount();
+
+  // Add stream tracks if already sharing
+  addTracksToConn(pc);
+
+  // Send our ICE candidates to this viewer
+  pc.onicecandidate = e => {
+    if (e.candidate) {
+      db.ref(`sessions/${sessionCode}/viewers/${viewerId}/pCandidates`).push(e.candidate.toJSON());
+    }
+  };
+
+  // Receive viewer's ICE candidates
+  db.ref(`sessions/${sessionCode}/viewers/${viewerId}/vCandidates`).on('child_added', snap => {
+    pc.addIceCandidate(new RTCIceCandidate(snap.val())).catch(()=>{});
+  });
+
+  // Receive viewer's answer
+  db.ref(`sessions/${sessionCode}/viewers/${viewerId}/answer`).on('value', snap => {
+    if (snap.val() && pc.signalingState === 'have-local-offer') {
+      pc.setRemoteDescription(new RTCSessionDescription(snap.val())).catch(()=>{});
+    }
+  });
+
+  // Create offer and write to Firebase
+  const offer = await pc.createOffer();
+  await pc.setLocalDescription(offer);
+  db.ref(`sessions/${sessionCode}/viewers/${viewerId}/offer`).set({ type: offer.type, sdp: offer.sdp });
+}
+
+// ═══════════════════════════════════════════════
+//  JOIN SESSION — VIEWER
+// ═══════════════════════════════════════════════
 function joinSession() {
   const code = document.getElementById('join-code').value.trim().toUpperCase();
   const errEl = document.getElementById('join-error');
@@ -812,238 +427,155 @@ function joinSession() {
     return;
   }
 
-  // Try to find session via localStorage (same-device / tab presenter)
-  const stored = localStorage.getItem(`sa_${code}`);
-  if (stored) {
-    try {
-      const data = JSON.parse(stored);
-      // Session must be recent (< 8 hours)
-      if (Date.now() - data.ts < 8 * 3600 * 1000) {
-        connectViewer(code, data.url, data.slide);
-        return;
-      }
-    } catch(e) {}
-  }
-
-  // Try Firebase
-  if (firebaseAvailable) {
-    db.ref(`sessions/${code}`).once('value', snap => {
-      const data = snap.val();
-      if (data && data.active && data.url) {
-        connectViewer(code, data.url, data.slide || 1);
-      } else {
-        errEl.textContent = 'Session not found. Check the code and try again.';
-        errEl.classList.add('visible');
-      }
-    });
+  if (!firebaseReady) {
+    errEl.textContent = 'Firebase not configured. Cross-device sessions require Firebase.';
+    errEl.classList.add('visible');
     return;
   }
 
-  // If neither found, show friendly error
-  errEl.textContent = 'Session not found. Make sure the presenter is on the same device/network, or check the code.';
-  errEl.classList.add('visible');
-}
-
-function connectViewer(code, url, slide) {
-  sessionCode = code;
-  slideUrl = url;
-  myRole = 'viewer';
-  currentSlide = slide || 1;
-
-  setupBroadcast(code);
-  // Tell presenter we joined
-  if (bc) bc.postMessage({ type: 'viewer_join', code });
-
-  // Firebase listener
-  setupFirebaseViewer(code, (newSlide) => receiveSlideChange(newSlide));
-
-  // LocalStorage polling fallback (for same-device use)
-  startStoragePoller(code);
-
-  initSlideIframe('view-iframe', currentSlide);
-  showScreen('viewer');
-  document.getElementById('view-slide-num').textContent =
-    totalSlides ? currentSlide + ' / ' + totalSlides : 'Slide ' + currentSlide;
-}
-
-// Poll localStorage for changes (same-device fallback)
-let storagePoller = null;
-function startStoragePoller(code) {
-  let lastSlide = currentSlide;
-  storagePoller = setInterval(() => {
-    const stored = localStorage.getItem('sa_' + code);
-    if (!stored) return;
-    try {
-      const data = JSON.parse(stored);
-      if (data.slide !== lastSlide) {
-        lastSlide = data.slide;
-        receiveSlideChange(data.slide);
-      }
-      if (data.totalSlides && data.totalSlides !== totalSlides) {
-        totalSlides = data.totalSlides;
-        document.getElementById('view-slide-num').textContent =
-          currentSlide + ' / ' + totalSlides;
-      }
-    } catch(e) {}
-  }, 500);
-}
-
-// ═══════════════════════════════════════════════════════
-//  SLIDE CONTROL
-// ═══════════════════════════════════════════════════════
-// ── iframe registry: track iframe elements by id ──
-const iframeRegistry = {};
-
-function getOrCreateIframe(frameId) {
-  return document.getElementById(frameId);
-}
-
-function initSlideIframe(frameId, slide) {
-  // Load the iframe for the first time at the given slide.
-  // Google Slides embed DOES support ?slide=id.pN on initial load.
-  const iframe = document.getElementById(frameId);
-  const base = slideUrl.split('?')[0].split('#')[0];
-  iframe.src = base + '?rm=minimal&start=false&loop=false&delayms=60000&slide=id.p' + slide;
-  iframeRegistry[frameId] = { currentSlide: slide };
-}
-
-function goToSlide(frameId, slide) {
-  const iframe = document.getElementById(frameId);
-  if (!iframe) return;
-
-  const reg = iframeRegistry[frameId] || {};
-  const base = slideUrl.split('?')[0].split('#')[0];
-
-  if (!reg.currentSlide) {
-    // First load
-    iframe.src = base + '?rm=minimal&start=false&loop=false&delayms=60000&slide=id.p' + slide;
-    iframeRegistry[frameId] = { currentSlide: slide };
-    return;
-  }
-
-  const delta = slide - reg.currentSlide;
-  iframeRegistry[frameId].currentSlide = slide;
-
-  if (delta === 0) return;
-
-  // Strategy 1: postMessage with the documented Google Slides embed API
-  // The iframe accepts {type:'sld', value: zeroBasedIndex} to jump to a slide,
-  // and arrow-key simulation for next/prev.
-  try {
-    // Jump directly via postMessage (0-indexed)
-    iframe.contentWindow.postMessage(
-      JSON.stringify({ type: 'sld', value: slide - 1 }),
-      'https://docs.google.com'
-    );
-  } catch(e) {}
-
-  // Strategy 2: simulate arrow keys inside the iframe as fallback.
-  // We focus the iframe and dispatch keyboard events.
-  const key = delta > 0 ? 'ArrowRight' : 'ArrowLeft';
-  const steps = Math.abs(delta);
-
-  iframe.focus();
-  let i = 0;
-  function sendKey() {
-    if (i >= steps) return;
-    try {
-      iframe.contentWindow.dispatchEvent(new KeyboardEvent('keydown', {
-        key: key, code: key, keyCode: delta > 0 ? 39 : 37,
-        bubbles: true, cancelable: true
-      }));
-    } catch(e) {}
-    i++;
-    if (i < steps) setTimeout(sendKey, 120);
-  }
-  sendKey();
-}
-
-function loadPresenterSlide(slide) {
-  goToSlide('pres-iframe', slide);
-  updatePresCounter();
-}
-
-function loadViewerSlide(slide) {
-  goToSlide('view-iframe', slide);
-  document.getElementById('view-slide-num').textContent =
-    totalSlides ? slide + ' / ' + totalSlides : 'Slide ' + slide;
-}
-
-function changeSlide(delta) {
-  currentSlide = Math.max(1, currentSlide + delta);
-  loadPresenterSlide(currentSlide);
-  broadcastSlideChange(sessionCode, currentSlide);
-  pushSlideFirebase(currentSlide);
-  updatePresCounter();
-}
-
-function receiveSlideChange(slide) {
-  if (myRole !== 'viewer') return;
-  if (slide === currentSlide) return;
-  currentSlide = slide;
-  loadViewerSlide(slide);
-
-  // Visual feedback
-  const dot = document.getElementById('sync-dot');
-  const label = document.getElementById('sync-label');
-  dot.style.background = '#e8a02f';
-  label.textContent = 'Updating...';
-  setTimeout(() => {
-    dot.style.background = '#7ecb9a';
-    label.textContent = 'Synced';
-  }, 800);
-}
-
-function updatePresCounter() {
-  const el = document.getElementById('pres-counter');
-  el.textContent = totalSlides ? `${currentSlide} / ${totalSlides}` : `Slide ${currentSlide}`;
-  document.getElementById('btn-prev').disabled = currentSlide <= 1;
-  document.getElementById('btn-next').disabled = totalSlides ? currentSlide >= totalSlides : false;
-}
-
-function updateViewerCount() {
-  const el = document.getElementById('viewers-count');
-  if (el) el.textContent = `${viewersOnline} viewer${viewersOnline !== 1 ? 's' : ''}`;
-}
-
-function setTotalSlides(n) {
-  if (!n || n < 1) return;
-  totalSlides = n;
-  updatePresCounter();
-  // Sync to viewers via Firebase
-  if (firebaseAvailable && sessionRef) sessionRef.child('totalSlides').set(totalSlides);
-  // Also broadcast via localStorage for same-device viewers
-  if (sessionCode) {
-    const stored = localStorage.getItem('sa_' + sessionCode);
-    if (stored) {
-      try {
-        const data = JSON.parse(stored);
-        data.totalSlides = totalSlides;
-        localStorage.setItem('sa_' + sessionCode, JSON.stringify(data));
-      } catch(e) {}
+  // Verify session is active
+  db.ref(`sessions/${code}/active`).once('value', snap => {
+    if (!snap.val()) {
+      errEl.textContent = 'Session not found or has ended. Check the code and try again.';
+      errEl.classList.add('visible');
+      return;
     }
+    sessionCode = code;
+    myRole = 'viewer';
+    connectAsViewer(code);
+  });
+}
+
+// ═══════════════════════════════════════════════
+//  WEBRTC VIEWER SIDE
+// ═══════════════════════════════════════════════
+async function connectAsViewer(code) {
+  showScreen('viewer');
+
+  // Register as a viewer — this triggers child_added on the presenter side
+  const viewerRef = db.ref(`sessions/${code}/viewers`).push();
+  const viewerId = viewerRef.key;
+  await viewerRef.set({ joined: Date.now() });
+  viewerRef.onDisconnect().remove();
+
+  const pc = new RTCPeerConnection(RTC_CONFIG);
+  peerConns[viewerId] = pc;
+
+  // When stream arrives, show it
+  pc.ontrack = e => {
+    const vid = document.getElementById('view-video');
+    if (vid.srcObject !== e.streams[0]) {
+      vid.srcObject = e.streams[0];
+      document.getElementById('view-placeholder').classList.add('hidden');
+      setStatus('green', 'Live');
+    }
+  };
+
+  pc.onconnectionstatechange = () => {
+    const s = pc.connectionState;
+    if (s === 'connected')    setStatus('green',  'Live');
+    if (s === 'connecting')   setStatus('orange', 'Connecting…');
+    if (s === 'disconnected') setStatus('orange', 'Reconnecting…');
+    if (s === 'failed')       setStatus('red',    'Connection failed');
+  };
+
+  // Send our ICE candidates to presenter
+  pc.onicecandidate = e => {
+    if (e.candidate) {
+      db.ref(`sessions/${code}/viewers/${viewerId}/vCandidates`).push(e.candidate.toJSON());
+    }
+  };
+
+  // Receive presenter's ICE candidates
+  db.ref(`sessions/${code}/viewers/${viewerId}/pCandidates`).on('child_added', snap => {
+    pc.addIceCandidate(new RTCIceCandidate(snap.val())).catch(()=>{});
+  });
+
+  // Receive offer from presenter and respond
+  db.ref(`sessions/${code}/viewers/${viewerId}/offer`).on('value', async snap => {
+    if (!snap.val() || pc.signalingState !== 'stable') return;
+    await pc.setRemoteDescription(new RTCSessionDescription(snap.val()));
+    const answer = await pc.createAnswer();
+    await pc.setLocalDescription(answer);
+    db.ref(`sessions/${code}/viewers/${viewerId}/answer`).set({ type: answer.type, sdp: answer.sdp });
+  });
+
+  // Watch for session ending
+  db.ref(`sessions/${code}/active`).on('value', snap => {
+    if (snap.val() === false) {
+      setStatus('red', 'Session ended');
+      document.getElementById('view-placeholder').classList.remove('hidden');
+      document.getElementById('view-placeholder').querySelector('p').textContent = 'The presenter has ended the session.';
+    }
+  });
+}
+
+function setStatus(color, text) {
+  ['conn-dot', 'view-dot'].forEach(id => {
+    const el = document.getElementById(id);
+    el.className = 'status-dot ' + color;
+  });
+  document.getElementById('conn-label').textContent = text;
+  const lbl = document.getElementById('view-label');
+  lbl.textContent = text;
+  lbl.style.color = color === 'green' ? '#7ecb9a' : 'rgba(255,255,255,0.5)';
+}
+
+// ═══════════════════════════════════════════════
+//  END / LEAVE
+// ═══════════════════════════════════════════════
+function endSession() {
+  if (myRole === 'presenter' && !confirm('End session for all viewers?')) return;
+  cleanup();
+  showScreen('home');
+}
+
+function leaveSession() {
+  cleanup();
+  showScreen('home');
+}
+
+function cleanup() {
+  if (localStream) { localStream.getTracks().forEach(t => t.stop()); localStream = null; }
+  Object.values(peerConns).forEach(pc => pc.close());
+  peerConns = {};
+
+  if (firebaseReady && sessionCode && myRole === 'presenter') {
+    db.ref(`sessions/${sessionCode}/active`).set(false);
+    db.ref(`sessions/${sessionCode}`).off();
   }
+
+  sessionCode = null; myRole = null; viewerCount = 0;
+
+  // Reset video elements
+  document.getElementById('pres-video').srcObject = null;
+  document.getElementById('view-video').srcObject = null;
+  document.getElementById('pres-placeholder').classList.remove('hidden');
+  document.getElementById('view-placeholder').classList.remove('hidden');
+
+  // Reset share screen button
+  const btn = document.getElementById('share-screen-btn');
+  btn.textContent = 'Share Screen';
+  btn.classList.remove('live');
+  btn.disabled = false;
 }
 
-// ═══════════════════════════════════════════════════════
-//  SHARE MODAL
-// ═══════════════════════════════════════════════════════
+// ═══════════════════════════════════════════════
+//  UI
+// ═══════════════════════════════════════════════
+function refreshViewerCount() {
+  const el = document.getElementById('viewers-count');
+  if (el) el.textContent = `${viewerCount} viewer${viewerCount !== 1 ? 's' : ''}`;
+}
+
 function updateShareModal() {
-  const baseUrl = location.href.split('?')[0];
-  const link = `${baseUrl}?join=${sessionCode}`;
+  const base = location.href.split('?')[0];
   document.getElementById('modal-code').textContent = sessionCode;
-  document.getElementById('modal-url-text').textContent = location.hostname;
-  document.getElementById('share-link-input').value = link;
+  document.getElementById('share-link-input').value = base + '?join=' + sessionCode;
 }
 
-function showShareModal() {
-  updateShareModal();
-  document.getElementById('share-modal').classList.add('open');
-}
-
-function closeModal() {
-  document.getElementById('share-modal').classList.remove('open');
-}
+function showShareModal() { updateShareModal(); document.getElementById('share-modal').classList.add('open'); }
+function closeModal() { document.getElementById('share-modal').classList.remove('open'); }
 
 function copyShareLink() {
   const input = document.getElementById('share-link-input');
@@ -1052,64 +584,14 @@ function copyShareLink() {
     const btn = document.querySelector('#share-modal .btn.primary');
     btn.textContent = 'Copied ✓';
     setTimeout(() => btn.textContent = 'Copy Link', 2000);
-  }).catch(() => {
-    document.execCommand('copy');
-  });
+  }).catch(() => document.execCommand('copy'));
 }
 
-// ═══════════════════════════════════════════════════════
-//  END / LEAVE
-// ═══════════════════════════════════════════════════════
-function endSession() {
-  if (!confirm('End this session? All viewers will be disconnected.')) return;
-  if (firebaseAvailable && sessionRef) sessionRef.child('active').set(false);
-  if (bc) bc.postMessage({ type: 'session_end', code: sessionCode });
-  if (sessionCode) localStorage.removeItem(`sa_${sessionCode}`);
-  cleanup();
-  showScreen('home');
-}
-
-function leaveSession() {
-  if (bc) bc.postMessage({ type: 'viewer_leave', code: sessionCode });
-  cleanup();
-  showScreen('home');
-}
-
-function cleanup() {
-  if (storagePoller) clearInterval(storagePoller);
-  if (bc) { bc.close(); bc = null; }
-  if (sessionRef && firebaseAvailable) sessionRef.off();
-  sessionCode = null;
-  slideUrl = null;
-  myRole = null;
-  currentSlide = 1;
-  const pf = document.getElementById('pres-iframe');
-  const vf = document.getElementById('view-iframe');
-  if (pf) pf.src = '';
-  if (vf) vf.src = '';
-}
-
-// ═══════════════════════════════════════════════════════
-//  KEYBOARD SHORTCUTS (presenter)
-// ═══════════════════════════════════════════════════════
-document.addEventListener('keydown', e => {
-  if (myRole !== 'presenter') return;
-  if (e.key === 'ArrowRight' || e.key === 'ArrowDown' || e.key === ' ') {
-    e.preventDefault();
-    changeSlide(1);
-  }
-  if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') {
-    e.preventDefault();
-    changeSlide(-1);
-  }
-});
-
-// ═══════════════════════════════════════════════════════
-//  HANDLE ?join= DEEP LINKS
-// ═══════════════════════════════════════════════════════
-(function handleDeepLink() {
-  const params = new URLSearchParams(location.search);
-  const code = params.get('join');
+// ═══════════════════════════════════════════════
+//  DEEP LINK ?join=CODE
+// ═══════════════════════════════════════════════
+(function() {
+  const code = new URLSearchParams(location.search).get('join');
   if (code) {
     showScreen('join');
     document.getElementById('join-code').value = code.toUpperCase();
