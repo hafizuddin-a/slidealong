@@ -41,7 +41,6 @@ html, body { height: 100%; background: var(--paper); color: var(--ink); font-fam
 .btn.primary:hover { background: var(--accent); border-color: var(--accent); }
 .btn.danger { border-color: #c0392b; color: #c0392b; }
 .btn.danger:hover { background: #c0392b; color: white; }
-.btn.live { background: #c0392b !important; border-color: #c0392b !important; color: white !important; pointer-events: none; }
 .btn:disabled { opacity: 0.4; pointer-events: none; }
 .back-link { font-size: 0.72rem; color: var(--muted); background: none; border: none; cursor: pointer; font-family: 'DM Mono', monospace; text-decoration: underline; text-underline-offset: 3px; }
 .back-link:hover { color: var(--ink); }
@@ -57,19 +56,20 @@ html, body { height: 100%; background: var(--paper); color: var(--ink); font-fam
 .code-label { font-size: 0.7rem; color: rgba(255,255,255,0.5); letter-spacing: 0.1em; }
 .code-label strong { color: white; letter-spacing: 0.2em; }
 
-/* VIDEO */
-.video-area { flex: 1; background: #0a0a0a; position: relative; overflow: hidden; }
-.video-area video { width: 100%; height: 100%; object-fit: contain; display: block; }
-.placeholder { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 1.25rem; color: rgba(255,255,255,0.35); text-align: center; padding: 2rem; pointer-events: none; }
-.placeholder .icon { font-size: 2.5rem; }
-.placeholder .title { font-family: 'DM Serif Display', serif; font-size: 1.4rem; color: rgba(255,255,255,0.5); font-style: italic; }
-.placeholder .sub { font-size: 0.7rem; letter-spacing: 0.08em; text-transform: uppercase; line-height: 2; }
-.placeholder.hidden { display: none; }
+/* SLIDE AREA */
+.slide-area { flex: 1; background: #fff; position: relative; overflow: hidden; }
+.slide-area iframe { width: 100%; height: 100%; border: none; display: block; }
+.slide-placeholder { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 1.25rem; color: rgba(0,0,0,0.3); text-align: center; padding: 2rem; pointer-events: none; background: #f0f0f0; }
+.slide-placeholder .icon { font-size: 2.5rem; }
+.slide-placeholder .title { font-family: 'DM Serif Display', serif; font-size: 1.4rem; color: rgba(0,0,0,0.4); font-style: italic; }
+.slide-placeholder .sub { font-size: 0.7rem; letter-spacing: 0.08em; text-transform: uppercase; line-height: 2; }
+.slide-placeholder.hidden { display: none; }
 
 /* BOTTOM BARS */
 .bottombar { display: flex; align-items: center; justify-content: space-between; padding: 0.75rem 1rem; background: var(--ink); flex-shrink: 0; gap: 0.75rem; }
 .viewers-pill { font-size: 0.65rem; color: #7ecb9a; letter-spacing: 0.08em; text-transform: uppercase; display: flex; align-items: center; gap: 0.5rem; }
 .viewers-pill::before { content: ''; width: 6px; height: 6px; background: #7ecb9a; border-radius: 50%; animation: pulse 2s infinite; }
+.slide-counter { font-size: 0.65rem; color: rgba(255,255,255,0.6); letter-spacing: 0.1em; text-transform: uppercase; }
 .status-pill { display: flex; align-items: center; gap: 0.5rem; font-size: 0.65rem; letter-spacing: 0.08em; text-transform: uppercase; color: rgba(255,255,255,0.45); }
 .dot { width: 6px; height: 6px; border-radius: 50%; background: var(--muted); flex-shrink: 0; }
 .dot.green { background: #7ecb9a; animation: pulse 2s infinite; }
@@ -91,7 +91,7 @@ html, body { height: 100%; background: var(--paper); color: var(--ink); font-fam
 <!-- HOME -->
 <div id="home" class="screen active">
   <div class="home-logo">Slide<span>Along</span></div>
-  <div class="home-tagline">Present anywhere. Follow on any device.</div>
+  <div class="home-tagline">Share slides. Follow on any device.</div>
   <div class="home-actions">
     <button class="btn primary" onclick="showScreen('setup')">▶ Start Presenting</button>
     <button class="btn" onclick="showScreen('join')">⤵ Join a Session</button>
@@ -102,10 +102,14 @@ html, body { height: 100%; background: var(--paper); color: var(--ink); font-fam
 <div id="setup" class="screen">
   <div class="setup-header">
     <h2>New Session</h2>
-    <p>Your audience watches your screen live on their phones.</p>
+    <p>Your audience follows your slides on their phones.</p>
   </div>
   <div class="setup-card">
-    <div class="hint">Works with <strong>any</strong> presentation app — Google Slides, Canva, Keynote, PowerPoint, PDF. All animations and transitions are preserved exactly as you see them.</div>
+    <div class="hint">Paste your Google Slides link below. Make sure the presentation is shared as <strong>"Anyone with the link can view."</strong></div>
+    <div>
+      <div class="field-label">Google Slides URL</div>
+      <input class="field-input" id="slides-url" type="url" placeholder="https://docs.google.com/presentation/d/…" />
+    </div>
     <div id="setup-error" class="error-msg"></div>
     <button class="btn primary" onclick="startSession()">Create Session →</button>
     <button class="back-link" onclick="showScreen('home')">← Back</button>
@@ -141,17 +145,16 @@ html, body { height: 100%; background: var(--paper); color: var(--ink); font-fam
     </div>
     <button class="btn danger" style="padding:0.35rem 0.75rem;font-size:0.65rem;" onclick="endSession()">End</button>
   </div>
-  <div class="video-area">
-    <video id="pres-video" autoplay muted playsinline></video>
-    <div class="placeholder" id="pres-placeholder">
-      <div class="icon">🖥</div>
-      <div class="title">Ready to present</div>
-      <div class="sub">Tap "Go Live" below<br>then pick the <strong style="color:white">Tab</strong> with your slides</div>
-    </div>
+  <div class="slide-area">
+    <iframe id="pres-iframe" allowfullscreen></iframe>
   </div>
   <div class="bottombar">
     <div class="viewers-pill" id="viewer-count">0 viewers</div>
-    <button class="btn primary" id="go-live-btn" onclick="goLive()">Go Live</button>
+    <div style="display:flex;align-items:center;gap:0.5rem;">
+      <button class="btn" id="prev-btn" style="padding:0.4rem 0.85rem;font-size:0.75rem;border-color:rgba(255,255,255,0.3);color:rgba(255,255,255,0.8);" onclick="prevSlide()" disabled>◀</button>
+      <span class="slide-counter" id="slide-counter">Slide 1</span>
+      <button class="btn" id="next-btn" style="padding:0.4rem 0.85rem;font-size:0.75rem;border-color:rgba(255,255,255,0.3);color:rgba(255,255,255,0.8);" onclick="nextSlide()">▶</button>
+    </div>
     <button class="btn" style="padding:0.4rem 0.85rem;font-size:0.65rem;border-color:rgba(255,255,255,0.25);color:rgba(255,255,255,0.7);" onclick="showInviteModal()">Invite ↗</button>
   </div>
 </div>
@@ -166,21 +169,16 @@ html, body { height: 100%; background: var(--paper); color: var(--ink); font-fam
     </div>
     <button class="back-link" style="color:rgba(255,255,255,0.4);" onclick="leaveSession()">Leave</button>
   </div>
-  <div class="video-area">
-    <video id="view-video" autoplay playsinline></video>
-    <div class="placeholder" id="view-placeholder">
+  <div class="slide-area">
+    <div class="slide-placeholder" id="view-placeholder">
       <div class="icon">📡</div>
       <div class="title">Waiting for presenter</div>
-      <div class="sub">Connected to session.<br>Waiting for screen share to start…</div>
+      <div class="sub">Connected.<br>Slides will appear here.</div>
     </div>
+    <iframe id="view-iframe" allowfullscreen style="position:absolute;inset:0;"></iframe>
   </div>
-  <div class="bottombar">
+  <div class="bottombar" style="justify-content:center;">
     <div class="badge view">Viewer</div>
-    <div class="status-pill">
-      <div class="dot orange" id="view-dot2"></div>
-      <span id="view-status2">Connecting…</span>
-    </div>
-    <div style="width:60px"></div>
   </div>
 </div>
 
@@ -189,7 +187,7 @@ html, body { height: 100%; background: var(--paper); color: var(--ink); font-fam
   <div class="modal">
     <h3>Invite Viewers</h3>
     <div class="modal-code" id="modal-code-text">——</div>
-    <p>Share this link — viewers open it, enter the code, and watch your screen live on their device.</p>
+    <p>Share this link — viewers open it, enter the code, and follow your slides on their device.</p>
     <input class="field-input" id="invite-link" readonly onclick="this.select()" />
     <button class="btn primary" onclick="copyInviteLink()">Copy Link</button>
     <button class="back-link" onclick="closeModal()">Close</button>
@@ -197,10 +195,6 @@ html, body { height: 100%; background: var(--paper); color: var(--ink); font-fam
 </div>
 
 <script>
-// ══════════════════════════════════════════════════════
-//  PASTE YOUR FIREBASE CONFIG HERE
-// ══════════════════════════════════════════════════════
-// For Firebase JS SDK v7.20.0 and later, measurementId is optional
 const firebaseConfig = {
   apiKey: "AIzaSyAvEaYbtuEu-U5K3-YkUfSavIsCM_vdoLE",
   authDomain: "slidealong-dd8be.firebaseapp.com",
@@ -211,7 +205,6 @@ const firebaseConfig = {
   appId: "1:667682771056:web:047125fb436d8f4b75a4b5",
   measurementId: "G-727JX1CSBZ"
 };
-// ══════════════════════════════════════════════════════
 
 let db = null, firebaseInitError = null;
 try {
@@ -219,16 +212,7 @@ try {
   db = firebase.database();
 } catch(e) { firebaseInitError = e; console.error('Firebase:', e); }
 
-let myRole = null, sessionCode = null, localStream = null;
-let peerConns = {}, viewerCount = 0;
-
-const RTC = {
-  iceServers: [
-    { urls: 'stun:stun.l.google.com:19302' },
-    { urls: 'stun:stun1.l.google.com:19302' },
-    { urls: 'stun:stun2.l.google.com:19302' }
-  ]
-};
+let myRole = null, sessionCode = null, slideIndex = 1, embedBase = '', viewerCount = 0;
 
 // ── Screens ──
 function showScreen(id) {
@@ -241,12 +225,18 @@ function genCode() {
   return Array.from({length:6}, () => c[Math.floor(Math.random()*c.length)]).join('');
 }
 
+function extractSlidesId(url) {
+  const m = url.match(/\/presentation\/d\/([a-zA-Z0-9_-]+)/);
+  return m ? m[1] : null;
+}
+
 // ══════════════════════════════════════════════════════
 //  PRESENTER
 // ══════════════════════════════════════════════════════
 function startSession() {
   const errEl = document.getElementById('setup-error');
   errEl.classList.remove('visible');
+
   if (!db) {
     errEl.textContent = firebaseInitError
       ? 'Firebase error: ' + firebaseInitError.message
@@ -254,27 +244,33 @@ function startSession() {
     errEl.classList.add('visible');
     return;
   }
+
+  const url = document.getElementById('slides-url').value.trim();
+  const id = extractSlidesId(url);
+  if (!id) {
+    errEl.textContent = 'Please enter a valid Google Slides URL.';
+    errEl.classList.add('visible');
+    return;
+  }
+
+  embedBase = 'https://docs.google.com/presentation/d/' + id + '/embed?start=false&loop=false&delayms=0';
   sessionCode = genCode();
   myRole = 'presenter';
+  slideIndex = 1;
 
   const sessRef = db.ref('sessions/' + sessionCode);
-  sessRef.set({ active: true, created: Date.now() }).catch(e => {
-    const errEl = document.getElementById('setup-error');
+  sessRef.set({ active: true, created: Date.now(), slideUrl: embedBase, slideIndex: 1 }).catch(e => {
     errEl.textContent = 'Firebase write failed: ' + e.message + ' — check your Realtime Database security rules.';
     errEl.classList.add('visible');
     showScreen('setup');
   });
   sessRef.child('active').onDisconnect().set(false);
 
-  // New viewer joins
-  sessRef.child('viewers').on('child_added', snap => {
-    createPeerForViewer(snap.key);
+  sessRef.child('viewers').on('child_added', () => {
+    viewerCount++;
+    updateViewerCount();
   });
-
-  // Viewer leaves
-  sessRef.child('viewers').on('child_removed', snap => {
-    const vid = snap.key;
-    if (peerConns[vid]) { peerConns[vid].close(); delete peerConns[vid]; }
+  sessRef.child('viewers').on('child_removed', () => {
     viewerCount = Math.max(0, viewerCount - 1);
     updateViewerCount();
   });
@@ -282,77 +278,27 @@ function startSession() {
   document.getElementById('pres-code').textContent = sessionCode;
   updateInviteModal();
   showScreen('presenter');
+  loadPresenterSlide(1);
 }
 
-async function goLive() {
-  try {
-    localStream = await navigator.mediaDevices.getDisplayMedia({
-      video: { frameRate: { ideal: 30, max: 30 }, cursor: 'always', displaySurface: 'browser' },
-      audio: false
-    });
-    // Show on presenter's screen
-    document.getElementById('pres-video').srcObject = localStream;
-    document.getElementById('pres-placeholder').classList.add('hidden');
-
-    // Update button
-    const btn = document.getElementById('go-live-btn');
-    btn.textContent = '● Live';
-    btn.classList.add('live');
-
-    // Push stream to any peers already waiting
-    Object.values(peerConns).forEach(pc => pushStreamTo(pc));
-
-    // Handle user clicking browser's "Stop sharing" button
-    localStream.getVideoTracks()[0].addEventListener('ended', () => endSession());
-
-  } catch(e) {
-    if (e.name !== 'NotAllowedError') {
-      alert('Could not start screen share: ' + e.message);
-    }
-  }
+function loadPresenterSlide(n) {
+  slideIndex = n;
+  document.getElementById('pres-iframe').src = embedBase + '#slide=id.p' + n;
+  document.getElementById('slide-counter').textContent = 'Slide ' + n;
+  document.getElementById('prev-btn').disabled = n <= 1;
 }
 
-function pushStreamTo(pc) {
-  if (!localStream || !pc) return;
-  const existingSenders = pc.getSenders();
-  localStream.getTracks().forEach(track => {
-    if (!existingSenders.find(s => s.track && s.track.id === track.id)) {
-      pc.addTrack(track, localStream);
-    }
-  });
+function nextSlide() {
+  const n = slideIndex + 1;
+  loadPresenterSlide(n);
+  db.ref('sessions/' + sessionCode + '/slideIndex').set(n);
 }
 
-async function createPeerForViewer(viewerId) {
-  const pc = new RTCPeerConnection(RTC);
-  peerConns[viewerId] = pc;
-  viewerCount++;
-  updateViewerCount();
-
-  // Add stream tracks if already live
-  pushStreamTo(pc);
-
-  const path = 'sessions/' + sessionCode + '/viewers/' + viewerId;
-
-  // Send our ICE candidates
-  pc.onicecandidate = e => {
-    if (e.candidate) db.ref(path + '/pCandidates').push(e.candidate.toJSON());
-  };
-
-  // Receive viewer ICE candidates
-  db.ref(path + '/vCandidates').on('child_added', snap => {
-    pc.addIceCandidate(new RTCIceCandidate(snap.val())).catch(() => {});
-  });
-
-  // Receive answer from viewer
-  db.ref(path + '/answer').on('value', snap => {
-    if (!snap.val() || pc.signalingState !== 'have-local-offer') return;
-    pc.setRemoteDescription(new RTCSessionDescription(snap.val())).catch(() => {});
-  });
-
-  // Create offer and send to viewer via Firebase
-  const offer = await pc.createOffer();
-  await pc.setLocalDescription(offer);
-  db.ref(path + '/offer').set({ type: offer.type, sdp: offer.sdp });
+function prevSlide() {
+  if (slideIndex <= 1) return;
+  const n = slideIndex - 1;
+  loadPresenterSlide(n);
+  db.ref('sessions/' + sessionCode + '/slideIndex').set(n);
 }
 
 // ══════════════════════════════════════════════════════
@@ -376,97 +322,65 @@ function joinSession() {
     return;
   }
 
-  db.ref('sessions/' + code + '/active').once('value', snap => {
-    if (!snap.val()) {
+  db.ref('sessions/' + code).once('value', snap => {
+    const data = snap.val();
+    if (!data || !data.active) {
       errEl.textContent = 'Session not found or has ended. Check the code.';
       errEl.classList.add('visible');
       return;
     }
+    embedBase = data.slideUrl;
     sessionCode = code;
     myRole = 'viewer';
-    connectViewer(code);
+    connectViewer(code, data.slideIndex || 1);
   }, err => {
     errEl.textContent = 'Firebase read failed: ' + err.message + ' — check your Realtime Database security rules.';
     errEl.classList.add('visible');
   });
 }
 
-async function connectViewer(code) {
+function connectViewer(code, initialSlide) {
   showScreen('viewer');
-  setStatus('orange', 'Connecting…');
+  setViewerStatus('orange', 'Connecting…');
 
-  // Register in Firebase so presenter knows we joined
   const viewerRef = db.ref('sessions/' + code + '/viewers').push();
-  const viewerId = viewerRef.key;
-  await viewerRef.set({ joined: Date.now() });
+  viewerRef.set({ joined: Date.now() });
   viewerRef.onDisconnect().remove();
 
-  const pc = new RTCPeerConnection(RTC);
-  peerConns[viewerId] = pc;
+  loadViewerSlide(initialSlide);
 
-  const path = 'sessions/' + code + '/viewers/' + viewerId;
-
-  // Receive video stream
-  pc.ontrack = e => {
-    const vid = document.getElementById('view-video');
-    if (vid.srcObject !== e.streams[0]) {
-      vid.srcObject = e.streams[0];
-      document.getElementById('view-placeholder').classList.add('hidden');
-      setStatus('green', 'Live');
-    }
-  };
-
-  pc.onconnectionstatechange = () => {
-    const s = pc.connectionState;
-    if (s === 'connected')    setStatus('green', 'Live');
-    if (s === 'connecting')   setStatus('orange', 'Connecting…');
-    if (s === 'disconnected') setStatus('orange', 'Reconnecting…');
-    if (s === 'failed')       setStatus('red', 'Connection failed');
-  };
-
-  // Send our ICE candidates
-  pc.onicecandidate = e => {
-    if (e.candidate) db.ref(path + '/vCandidates').push(e.candidate.toJSON());
-  };
-
-  // Receive presenter ICE candidates
-  db.ref(path + '/pCandidates').on('child_added', snap => {
-    pc.addIceCandidate(new RTCIceCandidate(snap.val())).catch(() => {});
+  db.ref('sessions/' + code + '/slideIndex').on('value', snap => {
+    if (snap.val() !== null) loadViewerSlide(snap.val());
   });
 
-  // Receive offer from presenter, send back answer
-  db.ref(path + '/offer').on('value', async snap => {
-    if (!snap.val() || pc.signalingState !== 'stable') return;
-    await pc.setRemoteDescription(new RTCSessionDescription(snap.val()));
-    const answer = await pc.createAnswer();
-    await pc.setLocalDescription(answer);
-    db.ref(path + '/answer').set({ type: answer.type, sdp: answer.sdp });
-  });
-
-  // Watch for session end
   db.ref('sessions/' + code + '/active').on('value', snap => {
     if (snap.val() === false) {
-      setStatus('red', 'Session ended');
+      setViewerStatus('red', 'Session ended');
       document.getElementById('view-placeholder').classList.remove('hidden');
+      document.getElementById('view-placeholder').querySelector('.title').textContent = 'Session ended';
       document.getElementById('view-placeholder').querySelector('.sub').textContent = 'The presenter has ended the session.';
       document.getElementById('view-placeholder').querySelector('.icon').textContent = '🔌';
     }
   });
 }
 
-function setStatus(color, text) {
+function loadViewerSlide(n) {
+  const iframe = document.getElementById('view-iframe');
+  iframe.src = embedBase + '#slide=id.p' + n;
+  document.getElementById('view-placeholder').classList.add('hidden');
+  setViewerStatus('green', 'Live');
+}
+
+function setViewerStatus(color, text) {
   document.getElementById('view-dot').className = 'dot ' + color;
-  document.getElementById('view-dot2').className = 'dot ' + color;
   document.getElementById('view-status').textContent = text;
-  document.getElementById('view-status2').textContent = text;
 }
 
 // ══════════════════════════════════════════════════════
 //  CLEANUP
 // ══════════════════════════════════════════════════════
 function endSession() {
-  if (myRole === 'presenter' && localStream) {
-    if (!confirm('End session for all viewers?')) return;
+  if (myRole === 'presenter') {
     db.ref('sessions/' + sessionCode + '/active').set(false);
     db.ref('sessions/' + sessionCode).off();
   }
@@ -477,16 +391,15 @@ function endSession() {
 function leaveSession() { cleanup(); showScreen('home'); }
 
 function cleanup() {
-  if (localStream) { localStream.getTracks().forEach(t => t.stop()); localStream = null; }
-  Object.values(peerConns).forEach(pc => pc.close());
-  peerConns = {};
-  document.getElementById('pres-video').srcObject = null;
-  document.getElementById('view-video').srcObject = null;
-  document.getElementById('pres-placeholder').classList.remove('hidden');
+  document.getElementById('pres-iframe').src = '';
+  document.getElementById('view-iframe').src = '';
   document.getElementById('view-placeholder').classList.remove('hidden');
-  const btn = document.getElementById('go-live-btn');
-  btn.textContent = 'Go Live'; btn.classList.remove('live');
-  sessionCode = null; myRole = null; viewerCount = 0;
+  document.getElementById('view-placeholder').querySelector('.title').textContent = 'Waiting for presenter';
+  document.getElementById('view-placeholder').querySelector('.sub').textContent = 'Connected.\nSlides will appear here.';
+  document.getElementById('view-placeholder').querySelector('.icon').textContent = '📡';
+  document.getElementById('slide-counter').textContent = 'Slide 1';
+  document.getElementById('prev-btn').disabled = true;
+  sessionCode = null; myRole = null; slideIndex = 1; embedBase = ''; viewerCount = 0;
   updateViewerCount();
 }
 
