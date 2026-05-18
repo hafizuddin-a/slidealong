@@ -213,11 +213,11 @@ const firebaseConfig = {
 };
 // ══════════════════════════════════════════════════════
 
-let db = null;
+let db = null, firebaseInitError = null;
 try {
   firebase.initializeApp(firebaseConfig);
   db = firebase.database();
-} catch(e) { console.error('Firebase:', e); }
+} catch(e) { firebaseInitError = e; console.error('Firebase:', e); }
 
 let myRole = null, sessionCode = null, localStream = null;
 let peerConns = {}, viewerCount = 0;
@@ -248,7 +248,9 @@ function startSession() {
   const errEl = document.getElementById('setup-error');
   errEl.classList.remove('visible');
   if (!db) {
-    errEl.textContent = 'Firebase not configured. Add your Firebase config to the HTML file.';
+    errEl.textContent = firebaseInitError
+      ? 'Firebase error: ' + firebaseInitError.message
+      : 'Firebase failed to load. Check your internet connection and try again.';
     errEl.classList.add('visible');
     return;
   }
@@ -362,7 +364,9 @@ function joinSession() {
     return;
   }
   if (!db) {
-    errEl.textContent = 'Firebase not connected.';
+    errEl.textContent = firebaseInitError
+      ? 'Firebase error: ' + firebaseInitError.message
+      : 'Firebase failed to load. Check your internet connection and try again.';
     errEl.classList.add('visible');
     return;
   }
