@@ -890,22 +890,40 @@ function startStoragePoller(code) {
 //  SLIDE CONTROL
 // ═══════════════════════════════════════════════════════
 function goToSlide(iframeEl, slide) {
-  // Browsers cache-match iframes by full URL including hash.
-  // Changing only the hash does NOT cause a reload.
-  // Fix: append a unique _t= query param so every navigation is a genuinely new URL.
-  const base = slideUrl.split('?')[0];
-  iframeEl.src = base + '?start=false&loop=false&delayms=60000&rm=minimal&slide=id.p' + slide + '&_t=' + Date.now();
+  // Most reliable cross-browser method: replace the iframe element entirely.
+  // Simply changing .src doesn't work because browsers won't reload when only
+  // the query params change if the navigation is intercepted by the embed app.
+  // Creating a new element forces a clean load every time.
+  const parent = iframeEl.parentNode;
+  const sibling = iframeEl.nextSibling;
+  const id = iframeEl.id;
+  const cls = iframeEl.className;
+
+  parent.removeChild(iframeEl);
+
+  const newFrame = document.createElement('iframe');
+  newFrame.id = id;
+  newFrame.className = cls;
+  newFrame.setAttribute('allowfullscreen', '');
+  const base = slideUrl.split('?')[0].split('#')[0];
+  // slide=id.pN is a supported query param on the /embed endpoint
+  newFrame.src = base + '?rm=minimal&start=false&loop=false&delayms=60000&slide=id.p' + slide;
+
+  if (sibling) parent.insertBefore(newFrame, sibling);
+  else parent.appendChild(newFrame);
 }
 
 function loadPresenterSlide(slide) {
+  // Re-query each time since goToSlide replaces the iframe element
   goToSlide(document.getElementById('pres-iframe'), slide);
   updatePresCounter();
 }
 
 function loadViewerSlide(slide) {
+  // Re-query each time since goToSlide replaces the iframe element
   goToSlide(document.getElementById('view-iframe'), slide);
   document.getElementById('view-slide-num').textContent =
-    totalSlides ? slide + ' / ' + totalSlides : slide;
+    totalSlides ? slide + ' / ' + totalSlides : 'Slide ' + slide;
 }
 
 function changeSlide(delta) {
@@ -1022,8 +1040,10 @@ function cleanup() {
   slideUrl = null;
   myRole = null;
   currentSlide = 1;
-  document.getElementById('pres-iframe').src = '';
-  document.getElementById('view-iframe').src = '';
+  const pf = document.getElementById('pres-iframe');
+  const vf = document.getElementById('view-iframe');
+  if (pf) pf.src = '';
+  if (vf) vf.src = '';
 }
 
 // ═══════════════════════════════════════════════════════
