@@ -730,6 +730,14 @@ function setupFirebaseViewer(code, callback) {
   sessionRef.child('slide').on('value', snap => {
     if (snap.val() !== null) callback(snap.val());
   });
+  // Listen for total slide count
+  sessionRef.child('totalSlides').on('value', snap => {
+    if (snap.val()) {
+      totalSlides = snap.val();
+      document.getElementById('view-slide-num').textContent =
+        currentSlide + ' / ' + totalSlides;
+    }
+  });
 }
 
 function pushSlideFirebase(slide) {
@@ -767,9 +775,38 @@ function startSession() {
   loadPresenterSlide(currentSlide);
   showScreen('presenter');
   updateViewerCount();
-
-  // Check URL for ?join= and parse code to handle direct links
   updateShareModal();
+
+  // Fetch total slide count (works for public presentations)
+  fetchSlideCount(slideUrl);
+}
+
+function fetchSlideCount(embedUrl) {
+  // Extract the presentation ID and use the oEmbed endpoint to get slide count.
+  // This works without any API key for publicly shared presentations.
+  const m = embedUrl.match(/\/presentation\/d\/([a-zA-Z0-9_-]+)/);
+  if (!m) return;
+  const id = m[1];
+  // The /pub?output=svg trick: request each slide until we get a 404.
+  // Simpler: use the thumbnail API which returns metadata.
+  // We'll use a head-request loop on slide thumbnails — fast and keyless.
+  let count = 0;
+  function checkSlide(n) {
+    const img = new Image();
+    img.onload = () => { count = n; checkSlide(n + 1); };
+    img.onerror = () => {
+      if (n > 1) { // at least found slide 1
+        totalSlides = count;
+        // Save to Firebase so viewers know too
+        if (firebaseAvailable && sessionRef) sessionRef.child('totalSlides').set(totalSlides);
+        broadcastSlideChange(sessionCode, currentSlide); // refresh viewers with count
+        updatePresCounter();
+      }
+    };
+    // Google Slides thumbnail URL — works for public decks, no API key needed
+    img.src = `https://docs.google.com/presentation/d/${id}/export/png?pageid=p${n}&scale=0.1`;
+  }
+  checkSlide(1);
 }
 
 // ═══════════════════════════════════════════════════════
@@ -860,10 +897,12 @@ function startStoragePoller(code) {
 //  SLIDE CONTROL
 // ═══════════════════════════════════════════════════════
 function goToSlide(iframeEl, slide) {
-  // Navigate by appending the slide hash to the embed URL.
-  // Google Slides embed supports #slide=id.pN for direct slide navigation.
+  // Browsers won't reload an iframe when only the hash changes, so we must
+  // blank it first, then set the full URL with the new slide hash.
   const base = slideUrl.split('#')[0];
-  iframeEl.src = base + '#slide=id.p' + slide;
+  const target = base + '#slide=id.p' + slide;
+  iframeEl.src = 'about:blank';
+  setTimeout(() => { iframeEl.src = target; }, 30);
 }
 
 function loadPresenterSlide(slide) {
@@ -873,7 +912,8 @@ function loadPresenterSlide(slide) {
 
 function loadViewerSlide(slide) {
   goToSlide(document.getElementById('view-iframe'), slide);
-  document.getElementById('view-slide-num').textContent = slide;
+  document.getElementById('view-slide-num').textContent =
+    totalSlides ? slide + ' / ' + totalSlides : slide;
 }
 
 function changeSlide(delta) {
@@ -903,8 +943,9 @@ function receiveSlideChange(slide) {
 
 function updatePresCounter() {
   const el = document.getElementById('pres-counter');
-  el.textContent = `Slide ${currentSlide}`;
+  el.textContent = totalSlides ? `${currentSlide} / ${totalSlides}` : `Slide ${currentSlide}`;
   document.getElementById('btn-prev').disabled = currentSlide <= 1;
+  document.getElementById('btn-next').disabled = totalSlides ? currentSlide >= totalSlides : false;
 }
 
 function updateViewerCount() {
