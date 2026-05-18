@@ -146,7 +146,7 @@ html, body { height: 100%; background: var(--paper); color: var(--ink); font-fam
     <div class="placeholder" id="pres-placeholder">
       <div class="icon">🖥</div>
       <div class="title">Ready to present</div>
-      <div class="sub">Tap "Go Live" below<br>then pick your slides tab or window</div>
+      <div class="sub">Tap "Go Live" below<br>then pick the <strong style="color:white">Tab</strong> with your slides</div>
     </div>
   </div>
   <div class="bottombar">
@@ -258,7 +258,12 @@ function startSession() {
   myRole = 'presenter';
 
   const sessRef = db.ref('sessions/' + sessionCode);
-  sessRef.set({ active: true, created: Date.now() });
+  sessRef.set({ active: true, created: Date.now() }).catch(e => {
+    const errEl = document.getElementById('setup-error');
+    errEl.textContent = 'Firebase write failed: ' + e.message + ' — check your Realtime Database security rules.';
+    errEl.classList.add('visible');
+    showScreen('setup');
+  });
   sessRef.child('active').onDisconnect().set(false);
 
   // New viewer joins
@@ -282,7 +287,7 @@ function startSession() {
 async function goLive() {
   try {
     localStream = await navigator.mediaDevices.getDisplayMedia({
-      video: { frameRate: { ideal: 30, max: 30 }, cursor: 'always' },
+      video: { frameRate: { ideal: 30, max: 30 }, cursor: 'always', displaySurface: 'browser' },
       audio: false
     });
     // Show on presenter's screen
@@ -380,6 +385,9 @@ function joinSession() {
     sessionCode = code;
     myRole = 'viewer';
     connectViewer(code);
+  }, err => {
+    errEl.textContent = 'Firebase read failed: ' + err.message + ' — check your Realtime Database security rules.';
+    errEl.classList.add('visible');
   });
 }
 
