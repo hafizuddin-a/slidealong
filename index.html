@@ -58,7 +58,9 @@ html, body { height: 100%; background: var(--paper); color: var(--ink); font-fam
 
 /* SLIDE AREA */
 .slide-area { flex: 1; background: #fff; position: relative; overflow: hidden; }
-.slide-area iframe { width: 100%; height: 100%; border: none; display: block; }
+.slide-frame { position: absolute; inset: 0; width: 100%; height: 100%; border: none; transition: opacity 0.15s; }
+.slide-frame.active-frame { opacity: 1; z-index: 1; pointer-events: auto; }
+.slide-frame:not(.active-frame) { opacity: 0; z-index: 0; pointer-events: none; }
 .slide-placeholder { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 1.25rem; color: rgba(0,0,0,0.3); text-align: center; padding: 2rem; pointer-events: none; background: #f0f0f0; }
 .slide-placeholder .icon { font-size: 2.5rem; }
 .slide-placeholder .title { font-family: 'DM Serif Display', serif; font-size: 1.4rem; color: rgba(0,0,0,0.4); font-style: italic; }
@@ -146,7 +148,8 @@ html, body { height: 100%; background: var(--paper); color: var(--ink); font-fam
     <button class="btn danger" style="padding:0.35rem 0.75rem;font-size:0.65rem;" onclick="endSession()">End</button>
   </div>
   <div class="slide-area">
-    <iframe id="pres-iframe" allowfullscreen></iframe>
+    <iframe id="pres-iframe-a" allowfullscreen class="slide-frame active-frame"></iframe>
+    <iframe id="pres-iframe-b" allowfullscreen class="slide-frame"></iframe>
   </div>
   <div class="bottombar">
     <div class="viewers-pill" id="viewer-count">0 viewers</div>
@@ -175,7 +178,8 @@ html, body { height: 100%; background: var(--paper); color: var(--ink); font-fam
       <div class="title">Waiting for presenter</div>
       <div class="sub">Connected.<br>Slides will appear here.</div>
     </div>
-    <iframe id="view-iframe" allowfullscreen style="position:absolute;inset:0;"></iframe>
+    <iframe id="view-iframe-a" allowfullscreen class="slide-frame active-frame"></iframe>
+    <iframe id="view-iframe-b" allowfullscreen class="slide-frame"></iframe>
   </div>
   <div class="bottombar" style="justify-content:center;">
     <div class="badge view">Viewer</div>
@@ -213,6 +217,19 @@ try {
 } catch(e) { firebaseInitError = e; console.error('Firebase:', e); }
 
 let myRole = null, sessionCode = null, slideIndex = 1, embedBase = '', viewerCount = 0;
+let presActiveFrame = 'a', viewActiveFrame = 'a';
+
+function buildSlideUrl(n) {
+  return embedBase + '&_n=' + n + '#slide=id.p' + n;
+}
+function getActiveFrame(p) { return p === 'pres' ? presActiveFrame : viewActiveFrame; }
+function getHiddenFrame(p) { return getActiveFrame(p) === 'a' ? 'b' : 'a'; }
+function swapFrames(p) {
+  const next = getActiveFrame(p) === 'a' ? 'b' : 'a';
+  document.getElementById(p + '-iframe-a').classList.toggle('active-frame', next === 'a');
+  document.getElementById(p + '-iframe-b').classList.toggle('active-frame', next === 'b');
+  if (p === 'pres') presActiveFrame = next; else viewActiveFrame = next;
+}
 
 // ── Screens ──
 function showScreen(id) {
@@ -278,14 +295,35 @@ function startSession() {
   document.getElementById('pres-code').textContent = sessionCode;
   updateInviteModal();
   showScreen('presenter');
-  loadPresenterSlide(1);
+  initPresentation();
+}
+
+function initPresentation() {
+  slideIndex = 1; presActiveFrame = 'a';
+  const a = document.getElementById('pres-iframe-a');
+  const b = document.getElementById('pres-iframe-b');
+  a.src = buildSlideUrl(1); a.dataset.slide = 1; a.classList.add('active-frame');
+  b.src = buildSlideUrl(2); b.dataset.slide = 2; b.classList.remove('active-frame');
+  document.getElementById('slide-counter').textContent = 'Slide 1';
+  document.getElementById('prev-btn').disabled = true;
 }
 
 function loadPresenterSlide(n) {
   slideIndex = n;
-  document.getElementById('pres-iframe').src = embedBase + '#slide=id.p' + n;
   document.getElementById('slide-counter').textContent = 'Slide ' + n;
   document.getElementById('prev-btn').disabled = n <= 1;
+  const hidden = getHiddenFrame('pres');
+  const hiddenEl = document.getElementById('pres-iframe-' + hidden);
+  if (Number(hiddenEl.dataset.slide) === n) {
+    swapFrames('pres');
+  } else {
+    const active = getActiveFrame('pres');
+    const activeEl = document.getElementById('pres-iframe-' + active);
+    activeEl.src = buildSlideUrl(n); activeEl.dataset.slide = n;
+  }
+  const newHidden = getHiddenFrame('pres');
+  const preloadEl = document.getElementById('pres-iframe-' + newHidden);
+  preloadEl.src = buildSlideUrl(n + 1); preloadEl.dataset.slide = n + 1;
 }
 
 function nextSlide() {
@@ -365,10 +403,20 @@ function connectViewer(code, initialSlide) {
 }
 
 function loadViewerSlide(n) {
-  const iframe = document.getElementById('view-iframe');
-  iframe.src = embedBase + '#slide=id.p' + n;
   document.getElementById('view-placeholder').classList.add('hidden');
   setViewerStatus('green', 'Live');
+  const hidden = getHiddenFrame('view');
+  const hiddenEl = document.getElementById('view-iframe-' + hidden);
+  if (Number(hiddenEl.dataset.slide) === n) {
+    swapFrames('view');
+  } else {
+    const active = getActiveFrame('view');
+    const activeEl = document.getElementById('view-iframe-' + active);
+    activeEl.src = buildSlideUrl(n); activeEl.dataset.slide = n;
+  }
+  const newHidden = getHiddenFrame('view');
+  const preloadEl = document.getElementById('view-iframe-' + newHidden);
+  preloadEl.src = buildSlideUrl(n + 1); preloadEl.dataset.slide = n + 1;
 }
 
 function setViewerStatus(color, text) {
@@ -391,8 +439,13 @@ function endSession() {
 function leaveSession() { cleanup(); showScreen('home'); }
 
 function cleanup() {
-  document.getElementById('pres-iframe').src = '';
-  document.getElementById('view-iframe').src = '';
+  ['pres-iframe-a','pres-iframe-b','view-iframe-a','view-iframe-b'].forEach(id => {
+    const el = document.getElementById(id); el.src = ''; delete el.dataset.slide;
+  });
+  document.getElementById('pres-iframe-a').classList.add('active-frame');
+  document.getElementById('pres-iframe-b').classList.remove('active-frame');
+  document.getElementById('view-iframe-a').classList.add('active-frame');
+  document.getElementById('view-iframe-b').classList.remove('active-frame');
   document.getElementById('view-placeholder').classList.remove('hidden');
   document.getElementById('view-placeholder').querySelector('.title').textContent = 'Waiting for presenter';
   document.getElementById('view-placeholder').querySelector('.sub').textContent = 'Connected.\nSlides will appear here.';
@@ -400,6 +453,7 @@ function cleanup() {
   document.getElementById('slide-counter').textContent = 'Slide 1';
   document.getElementById('prev-btn').disabled = true;
   sessionCode = null; myRole = null; slideIndex = 1; embedBase = ''; viewerCount = 0;
+  presActiveFrame = 'a'; viewActiveFrame = 'a';
   updateViewerCount();
 }
 
