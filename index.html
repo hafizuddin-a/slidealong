@@ -107,7 +107,7 @@ html, body { height: 100%; background: var(--paper); color: var(--ink); font-fam
     <p>Your audience follows your slides on their phones.</p>
   </div>
   <div class="setup-card">
-    <div class="hint">Paste your Google Slides link below. Make sure the presentation is shared as <strong>"Anyone with the link can view."</strong></div>
+    <div class="hint">First publish your presentation in Google Slides: <strong>File → Share → Publish to web</strong>, then paste any Google Slides link below.</div>
     <div>
       <div class="field-label">Google Slides URL</div>
       <input class="field-input" id="slides-url" type="url" placeholder="https://docs.google.com/presentation/d/…" />
@@ -220,7 +220,7 @@ let myRole = null, sessionCode = null, slideIndex = 1, embedBase = '', viewerCou
 let presActiveFrame = 'a', viewActiveFrame = 'a';
 
 function buildSlideUrl(n) {
-  return embedBase + '&slide=id.p' + n;
+  return embedBase + '&_n=' + n + '#slide=id.p' + n;
 }
 function getActiveFrame(p) { return p === 'pres' ? presActiveFrame : viewActiveFrame; }
 function getHiddenFrame(p) { return getActiveFrame(p) === 'a' ? 'b' : 'a'; }
@@ -270,7 +270,7 @@ function startSession() {
     return;
   }
 
-  embedBase = 'https://docs.google.com/presentation/d/' + id + '/embed?start=false&loop=false&delayms=0';
+  embedBase = 'https://docs.google.com/presentation/d/' + id + '/pub?start=false&loop=false&delayms=0';
   sessionCode = genCode();
   myRole = 'presenter';
   slideIndex = 1;
