@@ -58,10 +58,10 @@ html, body { height: 100%; background: var(--paper); color: var(--ink); font-fam
 
 /* SLIDE AREA */
 .slide-area { flex: 1; background: #fff; position: relative; overflow: hidden; }
-.slide-nav { position: absolute; bottom: 1rem; left: 50%; transform: translateX(-50%); display: flex; align-items: center; gap: 0.5rem; background: rgba(15,14,12,0.65); backdrop-filter: blur(4px); border-radius: 3px; padding: 0.35rem 0.75rem; z-index: 10; }
 .slide-nav-btn { background: none; border: none; color: rgba(255,255,255,0.8); font-family: 'DM Mono', monospace; font-size: 0.75rem; cursor: pointer; padding: 0.1rem 0.3rem; }
 .slide-nav-btn:disabled { opacity: 0.35; pointer-events: none; }
-.slide-nav-label { font-size: 0.65rem; color: rgba(255,255,255,0.7); letter-spacing: 0.1em; text-transform: uppercase; min-width: 4rem; text-align: center; }
+.view-toast { position: absolute; bottom: 1.25rem; left: 50%; transform: translateX(-50%); background: rgba(15,14,12,0.75); backdrop-filter: blur(4px); color: rgba(255,255,255,0.9); font-size: 0.65rem; letter-spacing: 0.12em; text-transform: uppercase; padding: 0.4rem 1rem; border-radius: 3px; z-index: 10; opacity: 0; transition: opacity 0.25s; pointer-events: none; white-space: nowrap; }
+.view-toast.show { opacity: 1; }
 .slide-placeholder { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 1.25rem; color: rgba(0,0,0,0.3); text-align: center; padding: 2rem; pointer-events: none; background: #f0f0f0; }
 .slide-placeholder .icon { font-size: 2.5rem; }
 .slide-placeholder .title { font-family: 'DM Serif Display', serif; font-size: 1.4rem; color: rgba(0,0,0,0.4); font-style: italic; }
@@ -148,17 +148,14 @@ html, body { height: 100%; background: var(--paper); color: var(--ink); font-fam
       <div class="viewers-pill" id="viewer-count">0 viewers</div>
     </div>
     <div style="display:flex;align-items:center;gap:0.5rem;">
+      <button class="slide-nav-btn" id="prev-btn" onclick="prevSlide()" disabled>◀</button>
+      <button class="slide-nav-btn" id="next-btn" onclick="nextSlide()">▶</button>
       <button class="btn" style="padding:0.35rem 0.75rem;font-size:0.65rem;border-color:rgba(255,255,255,0.25);color:rgba(255,255,255,0.7);" onclick="showInviteModal()">Invite ↗</button>
       <button class="btn danger" style="padding:0.35rem 0.75rem;font-size:0.65rem;" onclick="endSession()">End</button>
     </div>
   </div>
   <div class="slide-area">
     <iframe id="pres-iframe" allowfullscreen style="position:absolute;inset:0;width:100%;height:100%;border:none;"></iframe>
-    <div class="slide-nav">
-      <button class="slide-nav-btn" id="prev-btn" onclick="prevSlide()" disabled>◀</button>
-      <span class="slide-nav-label" id="slide-counter">Slide 1</span>
-      <button class="slide-nav-btn" id="next-btn" onclick="nextSlide()">▶</button>
-    </div>
   </div>
 </div>
 
@@ -172,7 +169,6 @@ html, body { height: 100%; background: var(--paper); color: var(--ink); font-fam
         <div class="dot orange" id="view-dot"></div>
         <span id="view-status">Connecting…</span>
       </div>
-      <span class="slide-nav-label" id="view-slide-label" style="display:none;"></span>
     </div>
     <button class="back-link" style="color:rgba(255,255,255,0.4);" onclick="leaveSession()">Leave</button>
   </div>
@@ -182,6 +178,7 @@ html, body { height: 100%; background: var(--paper); color: var(--ink); font-fam
       <div class="title">Waiting for presenter</div>
       <div class="sub">Connected.<br>Slides will appear here.</div>
     </div>
+    <div class="view-toast" id="view-toast"></div>
     <iframe id="view-iframe" allowfullscreen style="position:absolute;inset:0;width:100%;height:100%;border:none;"></iframe>
   </div>
 </div>
@@ -283,13 +280,11 @@ function startSession() {
   showScreen('presenter');
   document.getElementById('pres-iframe').src = embedBase;
   slideIndex = 1;
-  document.getElementById('slide-counter').textContent = 'Slide 1';
   document.getElementById('prev-btn').disabled = true;
 }
 
 function nextSlide() {
   slideIndex++;
-  document.getElementById('slide-counter').textContent = 'Slide ' + slideIndex;
   document.getElementById('prev-btn').disabled = false;
   db.ref('sessions/' + sessionCode + '/slideIndex').set(slideIndex);
 }
@@ -297,7 +292,6 @@ function nextSlide() {
 function prevSlide() {
   if (slideIndex <= 1) return;
   slideIndex--;
-  document.getElementById('slide-counter').textContent = 'Slide ' + slideIndex;
   document.getElementById('prev-btn').disabled = slideIndex <= 1;
   db.ref('sessions/' + sessionCode + '/slideIndex').set(slideIndex);
 }
@@ -350,12 +344,20 @@ function connectViewer(code) {
 
   loadViewerSlide();
 
+  let toastTimer = null;
   db.ref('sessions/' + code + '/slideIndex').on('value', snap => {
     const n = snap.val();
-    if (n !== null) {
-      const el = document.getElementById('view-slide-label');
-      el.textContent = 'Slide ' + n;
-      el.style.display = '';
+    if (n === null) return;
+    const toast = document.getElementById('view-toast');
+    toast.textContent = '→ Slide ' + n;
+    toast.classList.add('show');
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => toast.classList.remove('show'), 2000);
+    const iframe = document.getElementById('view-iframe');
+    if (iframe.contentWindow) {
+      try { iframe.contentWindow.postMessage(JSON.stringify({slide: n}), '*'); } catch(_) {}
+      try { iframe.contentWindow.postMessage(JSON.stringify({action: 'goto', slide: n}), '*'); } catch(_) {}
+      try { iframe.contentWindow.postMessage({slide: n}, 'https://docs.google.com'); } catch(_) {}
     }
   });
 
