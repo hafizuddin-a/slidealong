@@ -220,7 +220,7 @@ let myRole = null, sessionCode = null, slideIndex = 1, embedBase = '', viewerCou
 let presActiveFrame = 'a', viewActiveFrame = 'a';
 
 function buildSlideUrl(n) {
-  return embedBase + '&_n=' + n + '#slide=id.p' + n;
+  return embedBase + '&slide=id.p' + n;
 }
 function getActiveFrame(p) { return p === 'pres' ? presActiveFrame : viewActiveFrame; }
 function getHiddenFrame(p) { return getActiveFrame(p) === 'a' ? 'b' : 'a'; }
