@@ -10,16 +10,6 @@ Present anywhere. Let your audience follow your slides on any device.
 
 No app install required. No screen sharing. Works on any phone or tablet browser.
 
-## Running locally
-
-```
-npx serve .
-# or
-python3 -m http.server 8080
-```
-
-Then open `http://localhost:8080`.
-
 ## Tech
 
 - **Firebase Realtime Database** — session signaling and slide sync
