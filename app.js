@@ -58,7 +58,7 @@ async function renderPage(canvas, pdf, pageNum) {
   try {
     await task.promise;
   } catch(e) {
-    if (e?.name !== 'RenderingCancelledException') throw e;
+    if (!e || e.name !== 'RenderingCancelledException') throw e;
   } finally {
     renderTasks.delete(canvas);
   }
