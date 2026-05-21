@@ -1,3 +1,10 @@
+(function() {
+  var l = document.createElement('link');
+  l.rel = 'stylesheet';
+  l.href = 'https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Mono:wght@400;500&display=swap';
+  document.head.appendChild(l);
+})();
+
 const firebaseConfig = {
   apiKey: "AIzaSyAvEaYbtuEu-U5K3-YkUfSavIsCM_vdoLE",
   authDomain: "slidealong-dd8be.firebaseapp.com",
