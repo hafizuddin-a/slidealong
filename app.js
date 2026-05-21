@@ -20,7 +20,7 @@ pdfjsLib.GlobalWorkerOptions.workerSrc =
 
 let myRole = null, sessionCode = null, viewerCount = 0;
 let slideIndex = 1, totalSlides = 0, pdfDoc = null;
-let viewerRef = null, viewerSessionRef = null;
+let viewerRef = null, viewerSessionRef = null, viewerPdf = null;
 
 // ── Screens ──
 function showScreen(id) {
@@ -214,7 +214,7 @@ async function connectViewer(code, pdfData, numSlides) {
 
   viewerSessionRef = db.ref('sessions/' + code);
 
-  let viewerPdf = null;
+  viewerPdf = null;
   try {
     viewerPdf = await pdfjsLib.getDocument('data:application/pdf;base64,' + pdfData).promise;
   } catch(e) {
@@ -231,6 +231,7 @@ async function connectViewer(code, pdfData, numSlides) {
   viewerSessionRef.child('slideIndex').on('value', async snap => {
     const n = snap.val();
     if (n === null) return;
+    slideIndex = n;
 
     const toast = document.getElementById('view-toast');
     toast.textContent = '→ Slide ' + n;
@@ -270,6 +271,7 @@ function leaveSession() { cleanup(); showScreen('home'); }
 function cleanup() {
   if (viewerRef) { viewerRef.remove(); viewerRef = null; }
   if (viewerSessionRef) { viewerSessionRef.off(); viewerSessionRef = null; }
+  viewerPdf = null;
   renderTasks.clear();
 
   const presCanvas = document.getElementById('pres-canvas');
@@ -359,6 +361,19 @@ function initEventListeners() {
 
   // VIEWER
   document.getElementById('leave-btn').addEventListener('click', leaveSession);
+
+  // RESIZE / ORIENTATION CHANGE
+  let resizeTimer = null;
+  window.addEventListener('resize', () => {
+    clearTimeout(resizeTimer);
+    resizeTimer = setTimeout(() => {
+      if (myRole === 'presenter' && pdfDoc) {
+        renderPage(document.getElementById('pres-canvas'), pdfDoc, slideIndex);
+      } else if (myRole === 'viewer' && viewerPdf) {
+        renderPage(document.getElementById('view-canvas'), viewerPdf, slideIndex);
+      }
+    }, 150);
+  });
 
   // KEYBOARD
   document.addEventListener('keydown', e => {
