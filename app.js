@@ -20,6 +20,7 @@ pdfjsLib.GlobalWorkerOptions.workerSrc =
 
 let myRole = null, sessionCode = null, viewerCount = 0;
 let slideIndex = 1, totalSlides = 0, pdfDoc = null;
+let viewerRef = null, viewerSessionRef = null;
 
 // ── Screens ──
 function showScreen(id) {
@@ -76,8 +77,8 @@ async function startSession() {
     return;
   }
 
-  if (file.size > 8 * 1024 * 1024) {
-    errEl.textContent = 'PDF is too large (max 8 MB). Try compressing it first.';
+  if (file.size > 50 * 1024 * 1024) {
+    errEl.textContent = 'PDF is too large (max 50 MB). Try compressing it first.';
     errEl.classList.add('visible');
     return;
   }
@@ -149,6 +150,7 @@ async function prevSlide() {
 function joinSession() {
   const code = document.getElementById('join-code').value.trim().toUpperCase();
   const errEl = document.getElementById('join-error');
+  const submitBtn = document.getElementById('join-submit-btn');
   errEl.classList.remove('visible');
 
   if (code.length !== 6) {
@@ -164,11 +166,14 @@ function joinSession() {
     return;
   }
 
+  submitBtn.disabled = true;
+
   db.ref('sessions/' + code).once('value', snap => {
     const data = snap.val();
     if (!data || !data.active) {
       errEl.textContent = 'Session not found or has ended. Check the code.';
       errEl.classList.add('visible');
+      submitBtn.disabled = false;
       return;
     }
     sessionCode = code;
@@ -177,6 +182,7 @@ function joinSession() {
   }, err => {
     errEl.textContent = 'Firebase read failed: ' + err.message + ' — check your Realtime Database security rules.';
     errEl.classList.add('visible');
+    submitBtn.disabled = false;
   });
 }
 
@@ -184,9 +190,11 @@ async function connectViewer(code, pdfData, numSlides) {
   showScreen('viewer');
   setViewerStatus('orange', 'Loading slides…');
 
-  const viewerRef = db.ref('sessions/' + code + '/viewers').push();
+  viewerRef = db.ref('sessions/' + code + '/viewers').push();
   viewerRef.set({ joined: Date.now() });
   viewerRef.onDisconnect().remove();
+
+  viewerSessionRef = db.ref('sessions/' + code);
 
   let viewerPdf = null;
   try {
@@ -202,7 +210,7 @@ async function connectViewer(code, pdfData, numSlides) {
 
   let toastTimer = null;
 
-  db.ref('sessions/' + code + '/slideIndex').on('value', async snap => {
+  viewerSessionRef.child('slideIndex').on('value', async snap => {
     const n = snap.val();
     if (n === null) return;
 
@@ -215,14 +223,9 @@ async function connectViewer(code, pdfData, numSlides) {
     await renderPage(viewCanvas, viewerPdf, n);
   });
 
-  db.ref('sessions/' + code + '/active').on('value', snap => {
+  viewerSessionRef.child('active').on('value', snap => {
     if (snap.val() === false) {
-      setViewerStatus('red', 'Session ended');
-      const ph = document.getElementById('view-placeholder');
-      ph.classList.remove('hidden');
-      ph.querySelector('.title').textContent = 'Session ended';
-      ph.querySelector('.sub').textContent = 'The presenter has ended the session.';
-      ph.querySelector('.icon').textContent = '🔌';
+      leaveSession();
     }
   });
 }
@@ -247,6 +250,9 @@ function endSession() {
 function leaveSession() { cleanup(); showScreen('home'); }
 
 function cleanup() {
+  if (viewerRef) { viewerRef.remove(); viewerRef = null; }
+  if (viewerSessionRef) { viewerSessionRef.off(); viewerSessionRef = null; }
+
   const presCanvas = document.getElementById('pres-canvas');
   const viewCanvas = document.getElementById('view-canvas');
   [presCanvas, viewCanvas].forEach(c => {
@@ -268,6 +274,7 @@ function cleanup() {
   startBtn.disabled = false;
   document.getElementById('upload-progress').style.display = 'none';
   document.getElementById('pdf-file').value = '';
+  document.getElementById('join-submit-btn').disabled = false;
 
   slideIndex = 1; totalSlides = 0; pdfDoc = null;
   sessionCode = null; myRole = null; viewerCount = 0;
@@ -331,6 +338,13 @@ function initEventListeners() {
 
   // VIEWER
   document.getElementById('leave-btn').addEventListener('click', leaveSession);
+
+  // KEYBOARD
+  document.addEventListener('keydown', e => {
+    if (myRole !== 'presenter') return;
+    if (e.key === 'ArrowRight' || e.key === 'ArrowDown') nextSlide();
+    if (e.key === 'ArrowLeft'  || e.key === 'ArrowUp')   prevSlide();
+  });
 
   // MODAL
   document.getElementById('invite-link').addEventListener('click', function() { this.select(); });

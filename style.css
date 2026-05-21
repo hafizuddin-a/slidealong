@@ -39,7 +39,7 @@ html, body { height: 100%; background: var(--paper); color: var(--ink); font-fam
 
 /* PRESENTER / VIEWER */
 #presenter, #viewer { height: 100vh; overflow: hidden; }
-.topbar { display: flex; align-items: center; justify-content: space-between; padding: 0.6rem 1rem; background: var(--ink); color: var(--paper); flex-shrink: 0; gap: 1rem; }
+.topbar { display: flex; align-items: center; justify-content: space-between; padding: 0.6rem 1rem; background: var(--ink); color: var(--paper); flex-shrink: 0; gap: 1rem; flex-wrap: wrap; }
 .logo-bar { font-family: 'DM Serif Display', serif; font-size: 1.1rem; font-style: italic; }
 .logo-bar span { color: var(--accent); }
 .badge { font-size: 0.65rem; letter-spacing: 0.08em; text-transform: uppercase; padding: 0.25rem 0.6rem; border: 1px solid; border-radius: 2px; }
@@ -104,4 +104,4 @@ html, body { height: 100%; background: var(--paper); color: var(--ink); font-fam
   color: rgba(255, 255, 255, 0.7);
 }
 .btn-topbar-danger { padding: 0.35rem 0.75rem; font-size: 0.65rem; }
-.back-link-dim { color: rgba(255, 255, 255, 0.4); }
+.bottombar .slide-nav-btn { font-size: 1rem; padding: 0.4rem 0.75rem; }

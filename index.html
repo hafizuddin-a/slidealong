@@ -25,7 +25,7 @@
     <p>Your audience follows your slides on their phones.</p>
   </div>
   <div class="setup-card">
-    <div class="hint">Choose a PDF file to present (max 8 MB). It will be shared with all viewers automatically.</div>
+    <div class="hint">Choose a PDF file to present (max 50 MB). It will be shared with all viewers automatically.</div>
     <div>
       <div class="field-label">PDF File</div>
       <input class="field-input" id="pdf-file" type="file" accept=".pdf,application/pdf" />
@@ -63,16 +63,16 @@
       <div class="badge pres">Presenter</div>
       <div class="viewers-pill" id="viewer-count">0 viewers</div>
     </div>
-    <div class="topbar-group-sm">
-      <button class="slide-nav-btn" id="prev-btn" disabled>◀</button>
-      <span class="slide-counter" id="slide-counter">— / —</span>
-      <button class="slide-nav-btn" id="next-btn" disabled>▶</button>
-      <button class="btn btn-topbar-ghost" id="invite-btn">Invite ↗</button>
-      <button class="btn danger btn-topbar-danger" id="end-btn">End</button>
-    </div>
+    <button class="btn danger btn-topbar-danger" id="end-btn">End</button>
   </div>
   <div class="slide-area">
     <canvas id="pres-canvas" class="pdf-canvas"></canvas>
+  </div>
+  <div class="bottombar">
+    <button class="slide-nav-btn" id="prev-btn" disabled>◀</button>
+    <span class="slide-counter" id="slide-counter">— / —</span>
+    <button class="slide-nav-btn" id="next-btn" disabled>▶</button>
+    <button class="btn btn-topbar-ghost" id="invite-btn">Invite ↗</button>
   </div>
 </div>
 
@@ -87,7 +87,7 @@
         <span id="view-status">Connecting…</span>
       </div>
     </div>
-    <button class="back-link back-link-dim" id="leave-btn">Leave</button>
+    <button class="btn btn-topbar-ghost" id="leave-btn">Leave</button>
   </div>
   <div class="slide-area">
     <div class="slide-placeholder" id="view-placeholder">
