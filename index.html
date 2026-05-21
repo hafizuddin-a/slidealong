@@ -6,6 +6,8 @@
 <title>SlideAlong</title>
 <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-database-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-storage-compat.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
 <style>
 @import url('https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Mono:wght@400;500&display=swap');
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -31,6 +33,7 @@ html, body { height: 100%; background: var(--paper); color: var(--ink); font-fam
 .field-label { font-size: 0.7rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); margin-bottom: 0.35rem; }
 .field-input { width: 100%; padding: 0.7rem 0.85rem; border: 1.5px solid var(--border); background: var(--paper); font-family: 'DM Mono', monospace; font-size: 0.8rem; color: var(--ink); border-radius: 2px; outline: none; transition: border-color 0.15s; }
 .field-input:focus { border-color: var(--ink); }
+.field-input[type="file"] { padding: 0.5rem 0.85rem; cursor: pointer; }
 .error-msg { font-size: 0.72rem; color: #c0392b; background: #fdf0ee; border: 1px solid #f5c6c0; border-radius: 2px; padding: 0.5rem 0.75rem; display: none; }
 .error-msg.visible { display: block; }
 
@@ -57,16 +60,18 @@ html, body { height: 100%; background: var(--paper); color: var(--ink); font-fam
 .code-label strong { color: white; letter-spacing: 0.2em; }
 
 /* SLIDE AREA */
-.slide-area { flex: 1; background: #fff; position: relative; overflow: hidden; }
+.slide-area { flex: 1; background: #1a1a1a; position: relative; overflow: hidden; }
 .slide-nav-btn { background: none; border: none; color: rgba(255,255,255,0.8); font-family: 'DM Mono', monospace; font-size: 0.75rem; cursor: pointer; padding: 0.1rem 0.3rem; }
 .slide-nav-btn:disabled { opacity: 0.35; pointer-events: none; }
 .view-toast { position: absolute; bottom: 1.25rem; left: 50%; transform: translateX(-50%); background: rgba(15,14,12,0.75); backdrop-filter: blur(4px); color: rgba(255,255,255,0.9); font-size: 0.65rem; letter-spacing: 0.12em; text-transform: uppercase; padding: 0.4rem 1rem; border-radius: 3px; z-index: 10; opacity: 0; transition: opacity 0.25s; pointer-events: none; white-space: nowrap; }
 .view-toast.show { opacity: 1; }
-.slide-placeholder { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 1.25rem; color: rgba(0,0,0,0.3); text-align: center; padding: 2rem; pointer-events: none; background: #f0f0f0; }
+.slide-placeholder { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 1.25rem; color: rgba(255,255,255,0.3); text-align: center; padding: 2rem; pointer-events: none; }
 .slide-placeholder .icon { font-size: 2.5rem; }
-.slide-placeholder .title { font-family: 'DM Serif Display', serif; font-size: 1.4rem; color: rgba(0,0,0,0.4); font-style: italic; }
+.slide-placeholder .title { font-family: 'DM Serif Display', serif; font-size: 1.4rem; color: rgba(255,255,255,0.4); font-style: italic; }
 .slide-placeholder .sub { font-size: 0.7rem; letter-spacing: 0.08em; text-transform: uppercase; line-height: 2; }
 .slide-placeholder.hidden { display: none; }
+.pdf-canvas { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); background: white; box-shadow: 0 2px 20px rgba(0,0,0,0.4); display: none; max-width: 100%; max-height: 100%; }
+.pdf-canvas.ready { display: block; }
 
 /* BOTTOM BARS */
 .bottombar { display: flex; align-items: center; justify-content: space-between; padding: 0.75rem 1rem; background: var(--ink); flex-shrink: 0; gap: 0.75rem; }
@@ -108,13 +113,14 @@ html, body { height: 100%; background: var(--paper); color: var(--ink); font-fam
     <p>Your audience follows your slides on their phones.</p>
   </div>
   <div class="setup-card">
-    <div class="hint">First publish your presentation in Google Slides: <strong>File → Share → Publish to web</strong>, then paste any Google Slides link below.</div>
+    <div class="hint">Choose a PDF file to present. It will be uploaded and shared with all viewers automatically.</div>
     <div>
-      <div class="field-label">Google Slides URL</div>
-      <input class="field-input" id="slides-url" type="url" placeholder="https://docs.google.com/presentation/d/…" />
+      <div class="field-label">PDF File</div>
+      <input class="field-input" id="pdf-file" type="file" accept=".pdf,application/pdf" />
     </div>
+    <div id="upload-progress" style="display:none;font-size:0.72rem;color:var(--muted);padding:0.25rem 0;">Uploading…</div>
     <div id="setup-error" class="error-msg"></div>
-    <button class="btn primary" onclick="startSession()">Create Session →</button>
+    <button class="btn primary" id="start-btn" onclick="startSession()">Create Session →</button>
     <button class="back-link" onclick="showScreen('home')">← Back</button>
   </div>
 </div>
@@ -149,13 +155,14 @@ html, body { height: 100%; background: var(--paper); color: var(--ink); font-fam
     </div>
     <div style="display:flex;align-items:center;gap:0.5rem;">
       <button class="slide-nav-btn" id="prev-btn" onclick="prevSlide()" disabled>◀</button>
-      <button class="slide-nav-btn" id="next-btn" onclick="nextSlide()">▶</button>
+      <span class="slide-counter" id="slide-counter">— / —</span>
+      <button class="slide-nav-btn" id="next-btn" onclick="nextSlide()" disabled>▶</button>
       <button class="btn" style="padding:0.35rem 0.75rem;font-size:0.65rem;border-color:rgba(255,255,255,0.25);color:rgba(255,255,255,0.7);" onclick="showInviteModal()">Invite ↗</button>
       <button class="btn danger" style="padding:0.35rem 0.75rem;font-size:0.65rem;" onclick="endSession()">End</button>
     </div>
   </div>
   <div class="slide-area">
-    <iframe id="pres-iframe" allowfullscreen style="position:absolute;inset:0;width:100%;height:100%;border:none;"></iframe>
+    <canvas id="pres-canvas" class="pdf-canvas"></canvas>
   </div>
 </div>
 
@@ -179,7 +186,7 @@ html, body { height: 100%; background: var(--paper); color: var(--ink); font-fam
       <div class="sub">Connected.<br>Slides will appear here.</div>
     </div>
     <div class="view-toast" id="view-toast"></div>
-    <iframe id="view-iframe" allowfullscreen style="position:absolute;inset:0;width:100%;height:100%;border:none;"></iframe>
+    <canvas id="view-canvas" class="pdf-canvas"></canvas>
   </div>
 </div>
 
@@ -207,13 +214,18 @@ const firebaseConfig = {
   measurementId: "G-727JX1CSBZ"
 };
 
-let db = null, firebaseInitError = null;
+let db = null, storage = null, firebaseInitError = null;
 try {
   firebase.initializeApp(firebaseConfig);
   db = firebase.database();
+  storage = firebase.storage();
 } catch(e) { firebaseInitError = e; console.error('Firebase:', e); }
 
-let myRole = null, sessionCode = null, embedBase = '', viewerCount = 0, slideIndex = 1;
+pdfjsLib.GlobalWorkerOptions.workerSrc =
+  'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+
+let myRole = null, sessionCode = null, viewerCount = 0;
+let slideIndex = 1, totalSlides = 0, pdfDoc = null;
 
 // ── Screens ──
 function showScreen(id) {
@@ -226,16 +238,32 @@ function genCode() {
   return Array.from({length:6}, () => c[Math.floor(Math.random()*c.length)]).join('');
 }
 
-function extractSlidesId(url) {
-  const m = url.match(/\/presentation\/d\/([a-zA-Z0-9_-]+)/);
-  return m ? m[1] : null;
+// ── PDF rendering ──
+async function renderPage(canvas, pdf, pageNum) {
+  const page = await pdf.getPage(pageNum);
+  const container = canvas.parentElement;
+  const vp = page.getViewport({ scale: 1 });
+  const scale = Math.min(container.clientWidth / vp.width, container.clientHeight / vp.height);
+  const scaled = page.getViewport({ scale });
+  canvas.width = scaled.width;
+  canvas.height = scaled.height;
+  canvas.classList.add('ready');
+  await page.render({ canvasContext: canvas.getContext('2d'), viewport: scaled }).promise;
+}
+
+function updateSlideCounter() {
+  document.getElementById('slide-counter').textContent = slideIndex + ' / ' + totalSlides;
+  document.getElementById('prev-btn').disabled = slideIndex <= 1;
+  document.getElementById('next-btn').disabled = slideIndex >= totalSlides;
 }
 
 // ══════════════════════════════════════════════════════
 //  PRESENTER
 // ══════════════════════════════════════════════════════
-function startSession() {
+async function startSession() {
   const errEl = document.getElementById('setup-error');
+  const progressEl = document.getElementById('upload-progress');
+  const startBtn = document.getElementById('start-btn');
   errEl.classList.remove('visible');
 
   if (!db) {
@@ -246,54 +274,68 @@ function startSession() {
     return;
   }
 
-  const url = document.getElementById('slides-url').value.trim();
-  const id = extractSlidesId(url);
-  if (!id) {
-    errEl.textContent = 'Please enter a valid Google Slides URL.';
+  const fileInput = document.getElementById('pdf-file');
+  const file = fileInput.files[0];
+  if (!file) {
+    errEl.textContent = 'Please select a PDF file.';
     errEl.classList.add('visible');
     return;
   }
 
-  embedBase = 'https://docs.google.com/presentation/d/' + id + '/embed?start=false&loop=false&delayms=0';
   sessionCode = genCode();
   myRole = 'presenter';
 
-  const sessRef = db.ref('sessions/' + sessionCode);
-  sessRef.set({ active: true, created: Date.now(), slideUrl: embedBase, slideIndex: 1 }).catch(e => {
-    errEl.textContent = 'Firebase write failed: ' + e.message + ' — check your Realtime Database security rules.';
+  startBtn.disabled = true;
+  progressEl.style.display = 'block';
+  progressEl.textContent = 'Uploading…';
+
+  try {
+    const ref = storage.ref('pdfs/' + sessionCode + '.pdf');
+    await ref.put(file);
+    const pdfUrl = await ref.getDownloadURL();
+
+    progressEl.textContent = 'Loading slides…';
+
+    pdfDoc = await pdfjsLib.getDocument(pdfUrl).promise;
+    totalSlides = pdfDoc.numPages;
+    slideIndex = 1;
+
+    const sessRef = db.ref('sessions/' + sessionCode);
+    await sessRef.set({ active: true, created: Date.now(), pdfUrl, totalSlides, slideIndex: 1 });
+    sessRef.child('active').onDisconnect().set(false);
+
+    sessRef.child('viewers').on('child_added', () => { viewerCount++; updateViewerCount(); });
+    sessRef.child('viewers').on('child_removed', () => { viewerCount = Math.max(0, viewerCount - 1); updateViewerCount(); });
+
+    document.getElementById('pres-code').textContent = sessionCode;
+    updateInviteModal();
+    showScreen('presenter');
+    updateSlideCounter();
+    await renderPage(document.getElementById('pres-canvas'), pdfDoc, 1);
+  } catch(e) {
+    errEl.textContent = 'Error: ' + e.message;
     errEl.classList.add('visible');
-    showScreen('setup');
-  });
-  sessRef.child('active').onDisconnect().set(false);
-
-  sessRef.child('viewers').on('child_added', () => {
-    viewerCount++;
-    updateViewerCount();
-  });
-  sessRef.child('viewers').on('child_removed', () => {
-    viewerCount = Math.max(0, viewerCount - 1);
-    updateViewerCount();
-  });
-
-  document.getElementById('pres-code').textContent = sessionCode;
-  updateInviteModal();
-  showScreen('presenter');
-  document.getElementById('pres-iframe').src = embedBase;
-  slideIndex = 1;
-  document.getElementById('prev-btn').disabled = true;
+    startBtn.disabled = false;
+    progressEl.style.display = 'none';
+    myRole = null;
+    sessionCode = null;
+  }
 }
 
-function nextSlide() {
+async function nextSlide() {
+  if (slideIndex >= totalSlides) return;
   slideIndex++;
-  document.getElementById('prev-btn').disabled = false;
+  updateSlideCounter();
   db.ref('sessions/' + sessionCode + '/slideIndex').set(slideIndex);
+  await renderPage(document.getElementById('pres-canvas'), pdfDoc, slideIndex);
 }
 
-function prevSlide() {
+async function prevSlide() {
   if (slideIndex <= 1) return;
   slideIndex--;
-  document.getElementById('prev-btn').disabled = slideIndex <= 1;
+  updateSlideCounter();
   db.ref('sessions/' + sessionCode + '/slideIndex').set(slideIndex);
+  await renderPage(document.getElementById('pres-canvas'), pdfDoc, slideIndex);
 }
 
 // ══════════════════════════════════════════════════════
@@ -324,58 +366,61 @@ function joinSession() {
       errEl.classList.add('visible');
       return;
     }
-    embedBase = data.slideUrl;
     sessionCode = code;
     myRole = 'viewer';
-    connectViewer(code);
+    connectViewer(code, data.pdfUrl, data.totalSlides);
   }, err => {
     errEl.textContent = 'Firebase read failed: ' + err.message + ' — check your Realtime Database security rules.';
     errEl.classList.add('visible');
   });
 }
 
-function connectViewer(code) {
+async function connectViewer(code, pdfUrl, numSlides) {
   showScreen('viewer');
-  setViewerStatus('orange', 'Connecting…');
+  setViewerStatus('orange', 'Loading slides…');
 
   const viewerRef = db.ref('sessions/' + code + '/viewers').push();
   viewerRef.set({ joined: Date.now() });
   viewerRef.onDisconnect().remove();
 
-  loadViewerSlide();
+  let viewerPdf = null;
+  try {
+    viewerPdf = await pdfjsLib.getDocument(pdfUrl).promise;
+  } catch(e) {
+    setViewerStatus('red', 'Failed to load slides');
+    return;
+  }
+
+  const viewCanvas = document.getElementById('view-canvas');
+  document.getElementById('view-placeholder').classList.add('hidden');
+  setViewerStatus('green', 'Live');
 
   let toastTimer = null;
-  db.ref('sessions/' + code + '/slideIndex').on('value', snap => {
+  let renderTask = null;
+
+  db.ref('sessions/' + code + '/slideIndex').on('value', async snap => {
     const n = snap.val();
     if (n === null) return;
+
     const toast = document.getElementById('view-toast');
     toast.textContent = '→ Slide ' + n;
     toast.classList.add('show');
     clearTimeout(toastTimer);
     toastTimer = setTimeout(() => toast.classList.remove('show'), 2000);
-    const iframe = document.getElementById('view-iframe');
-    if (iframe.contentWindow) {
-      try { iframe.contentWindow.postMessage(JSON.stringify({slide: n}), '*'); } catch(_) {}
-      try { iframe.contentWindow.postMessage(JSON.stringify({action: 'goto', slide: n}), '*'); } catch(_) {}
-      try { iframe.contentWindow.postMessage({slide: n}, 'https://docs.google.com'); } catch(_) {}
-    }
+
+    await renderPage(viewCanvas, viewerPdf, n);
   });
 
   db.ref('sessions/' + code + '/active').on('value', snap => {
     if (snap.val() === false) {
       setViewerStatus('red', 'Session ended');
-      document.getElementById('view-placeholder').classList.remove('hidden');
-      document.getElementById('view-placeholder').querySelector('.title').textContent = 'Session ended';
-      document.getElementById('view-placeholder').querySelector('.sub').textContent = 'The presenter has ended the session.';
-      document.getElementById('view-placeholder').querySelector('.icon').textContent = '🔌';
+      const ph = document.getElementById('view-placeholder');
+      ph.classList.remove('hidden');
+      ph.querySelector('.title').textContent = 'Session ended';
+      ph.querySelector('.sub').textContent = 'The presenter has ended the session.';
+      ph.querySelector('.icon').textContent = '🔌';
     }
   });
-}
-
-function loadViewerSlide() {
-  document.getElementById('view-placeholder').classList.add('hidden');
-  setViewerStatus('green', 'Live');
-  document.getElementById('view-iframe').src = embedBase;
 }
 
 function setViewerStatus(color, text) {
@@ -398,17 +443,33 @@ function endSession() {
 function leaveSession() { cleanup(); showScreen('home'); }
 
 function cleanup() {
-  document.getElementById('pres-iframe').src = '';
-  document.getElementById('view-iframe').src = '';
-  document.getElementById('view-placeholder').classList.remove('hidden');
-  document.getElementById('view-placeholder').querySelector('.title').textContent = 'Waiting for presenter';
-  document.getElementById('view-placeholder').querySelector('.sub').textContent = 'Connected.\nSlides will appear here.';
-  document.getElementById('view-placeholder').querySelector('.icon').textContent = '📡';
-  slideIndex = 1;
-  document.getElementById('slide-counter').textContent = 'Slide 1';
+  const presCanvas = document.getElementById('pres-canvas');
+  const viewCanvas = document.getElementById('view-canvas');
+  [presCanvas, viewCanvas].forEach(c => {
+    c.classList.remove('ready');
+    const ctx = c.getContext('2d');
+    ctx.clearRect(0, 0, c.width, c.height);
+  });
+
+  const ph = document.getElementById('view-placeholder');
+  ph.classList.remove('hidden');
+  ph.querySelector('.title').textContent = 'Waiting for presenter';
+  ph.querySelector('.sub').textContent = 'Connected.\nSlides will appear here.';
+  ph.querySelector('.icon').textContent = '📡';
+
+  const toast = document.getElementById('view-toast');
+  if (toast) { toast.classList.remove('show'); toast.textContent = ''; }
+
+  const startBtn = document.getElementById('start-btn');
+  startBtn.disabled = false;
+  document.getElementById('upload-progress').style.display = 'none';
+  document.getElementById('pdf-file').value = '';
+
+  slideIndex = 1; totalSlides = 0; pdfDoc = null;
+  sessionCode = null; myRole = null; viewerCount = 0;
   document.getElementById('prev-btn').disabled = true;
-  document.getElementById('view-slide-label').style.display = 'none';
-  sessionCode = null; myRole = null; embedBase = ''; viewerCount = 0;
+  document.getElementById('next-btn').disabled = true;
+  document.getElementById('slide-counter').textContent = '— / —';
   updateViewerCount();
 }
 
