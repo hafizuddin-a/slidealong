@@ -145,7 +145,7 @@ async function startSession() {
     });
 
     const sessRef = db.ref('sessions/' + sessionCode);
-    sessRef.child('active').onDisconnect().set(false);
+    sessRef.onDisconnect().remove();
     sessRef.child('viewers').on('child_added', () => { viewerCount++; updateViewerCount(); });
     sessRef.child('viewers').on('child_removed', () => { viewerCount = Math.max(0, viewerCount - 1); updateViewerCount(); });
 
@@ -261,7 +261,7 @@ async function connectViewer(code, pdfData, numSlides) {
   });
 
   viewerSessionRef.child('active').on('value', snap => {
-    if (snap.val() === false) {
+    if (!snap.val()) {
       leaveSession();
     }
   });
@@ -277,7 +277,7 @@ function setViewerStatus(color, text) {
 // ══════════════════════════════════════════════════════
 function endSession() {
   if (myRole === 'presenter') {
-    db.ref('sessions/' + sessionCode + '/active').set(false);
+    db.ref('sessions/' + sessionCode).remove();
     db.ref('sessions/' + sessionCode).off();
   }
   cleanup();
@@ -349,7 +349,7 @@ function copyInviteLink() {
     const btn = document.getElementById('copy-link-btn');
     btn.textContent = 'Copied ✓';
     setTimeout(() => btn.textContent = 'Copy Link', 2000);
-  }).catch(() => document.execCommand('copy'));
+  });
 }
 
 // ══════════════════════════════════════════════════════
@@ -404,6 +404,9 @@ function initEventListeners() {
   document.getElementById('invite-link').addEventListener('click', function() { this.select(); });
   document.getElementById('copy-link-btn').addEventListener('click', copyInviteLink);
   document.getElementById('close-modal-btn').addEventListener('click', closeModal);
+  document.getElementById('invite-modal').addEventListener('click', function(e) {
+    if (e.target === this) closeModal();
+  });
 }
 
 document.addEventListener('DOMContentLoaded', function() {
