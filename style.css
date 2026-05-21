@@ -38,7 +38,7 @@ html, body { height: 100%; background: var(--paper); color: var(--ink); font-fam
 .back-link:hover { color: var(--ink); }
 
 /* PRESENTER / VIEWER */
-#presenter, #viewer { height: 100vh; overflow: hidden; }
+#presenter, #viewer { height: 100vh; height: 100dvh; min-height: 0; overflow: hidden; }
 .topbar { display: flex; align-items: center; justify-content: space-between; padding: 0.6rem 1rem; background: var(--ink); color: var(--paper); flex-shrink: 0; gap: 1rem; flex-wrap: wrap; }
 .logo-bar { font-family: 'DM Serif Display', serif; font-size: 1.1rem; font-style: italic; }
 .logo-bar span { color: var(--accent); }

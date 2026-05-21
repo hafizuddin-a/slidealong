@@ -34,16 +34,34 @@ function genCode() {
 }
 
 // ── PDF rendering ──
+const renderTasks = new Map();
+
 async function renderPage(canvas, pdf, pageNum) {
+  const existing = renderTasks.get(canvas);
+  if (existing) existing.cancel();
+
   const page = await pdf.getPage(pageNum);
   const container = canvas.parentElement;
+  const dpr = window.devicePixelRatio || 1;
   const vp = page.getViewport({ scale: 1 });
-  const scale = Math.min(container.clientWidth / vp.width, container.clientHeight / vp.height);
-  const scaled = page.getViewport({ scale });
+  const cssScale = Math.min(container.clientWidth / vp.width, container.clientHeight / vp.height);
+  const scaled = page.getViewport({ scale: cssScale * dpr });
+
   canvas.width = scaled.width;
   canvas.height = scaled.height;
+  canvas.style.width  = Math.round(scaled.width  / dpr) + 'px';
+  canvas.style.height = Math.round(scaled.height / dpr) + 'px';
   canvas.classList.add('ready');
-  await page.render({ canvasContext: canvas.getContext('2d'), viewport: scaled }).promise;
+
+  const task = page.render({ canvasContext: canvas.getContext('2d'), viewport: scaled });
+  renderTasks.set(canvas, task);
+  try {
+    await task.promise;
+  } catch(e) {
+    if (e?.name !== 'RenderingCancelledException') throw e;
+  } finally {
+    renderTasks.delete(canvas);
+  }
 }
 
 function updateSlideCounter() {
@@ -252,11 +270,14 @@ function leaveSession() { cleanup(); showScreen('home'); }
 function cleanup() {
   if (viewerRef) { viewerRef.remove(); viewerRef = null; }
   if (viewerSessionRef) { viewerSessionRef.off(); viewerSessionRef = null; }
+  renderTasks.clear();
 
   const presCanvas = document.getElementById('pres-canvas');
   const viewCanvas = document.getElementById('view-canvas');
   [presCanvas, viewCanvas].forEach(c => {
     c.classList.remove('ready');
+    c.style.width = '';
+    c.style.height = '';
     const ctx = c.getContext('2d');
     ctx.clearRect(0, 0, c.width, c.height);
   });
