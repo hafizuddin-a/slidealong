@@ -6,7 +6,6 @@
 <title>SlideAlong</title>
 <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-database-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-storage-compat.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
 <style>
 @import url('https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Mono:wght@400;500&display=swap');
@@ -113,7 +112,7 @@ html, body { height: 100%; background: var(--paper); color: var(--ink); font-fam
     <p>Your audience follows your slides on their phones.</p>
   </div>
   <div class="setup-card">
-    <div class="hint">Choose a PDF file to present. It will be uploaded and shared with all viewers automatically.</div>
+    <div class="hint">Choose a PDF file to present (max 8 MB). It will be shared with all viewers automatically.</div>
     <div>
       <div class="field-label">PDF File</div>
       <input class="field-input" id="pdf-file" type="file" accept=".pdf,application/pdf" />
@@ -214,11 +213,10 @@ const firebaseConfig = {
   measurementId: "G-727JX1CSBZ"
 };
 
-let db = null, storage = null, firebaseInitError = null;
+let db = null, firebaseInitError = null;
 try {
   firebase.initializeApp(firebaseConfig);
   db = firebase.database();
-  storage = firebase.storage();
 } catch(e) { firebaseInitError = e; console.error('Firebase:', e); }
 
 pdfjsLib.GlobalWorkerOptions.workerSrc =
@@ -282,26 +280,39 @@ async function startSession() {
     return;
   }
 
+  if (file.size > 8 * 1024 * 1024) {
+    errEl.textContent = 'PDF is too large (max 8 MB). Try compressing it first.';
+    errEl.classList.add('visible');
+    return;
+  }
+
   sessionCode = genCode();
   myRole = 'presenter';
-
   startBtn.disabled = true;
   progressEl.style.display = 'block';
-  progressEl.textContent = 'Uploading…';
+  progressEl.textContent = 'Reading file…';
 
   try {
-    const ref = storage.ref('pdfs/' + sessionCode + '.pdf');
-    await ref.put(file);
-    const pdfUrl = await ref.getDownloadURL();
+    const arrayBuffer = await new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = e => resolve(e.target.result);
+      reader.onerror = () => reject(new Error('Failed to read file'));
+      reader.readAsArrayBuffer(file);
+    });
 
-    progressEl.textContent = 'Loading slides…';
-
-    pdfDoc = await pdfjsLib.getDocument(pdfUrl).promise;
+    pdfDoc = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
     totalSlides = pdfDoc.numPages;
     slideIndex = 1;
 
+    progressEl.textContent = 'Sharing slides…';
+
+    const bytes = new Uint8Array(arrayBuffer);
+    let binary = '';
+    for (let i = 0; i < bytes.length; i++) binary += String.fromCharCode(bytes[i]);
+    const pdfData = btoa(binary);
+
     const sessRef = db.ref('sessions/' + sessionCode);
-    await sessRef.set({ active: true, created: Date.now(), pdfUrl, totalSlides, slideIndex: 1 });
+    await sessRef.set({ active: true, created: Date.now(), pdfData, totalSlides, slideIndex: 1 });
     sessRef.child('active').onDisconnect().set(false);
 
     sessRef.child('viewers').on('child_added', () => { viewerCount++; updateViewerCount(); });
@@ -368,14 +379,14 @@ function joinSession() {
     }
     sessionCode = code;
     myRole = 'viewer';
-    connectViewer(code, data.pdfUrl, data.totalSlides);
+    connectViewer(code, data.pdfData, data.totalSlides);
   }, err => {
     errEl.textContent = 'Firebase read failed: ' + err.message + ' — check your Realtime Database security rules.';
     errEl.classList.add('visible');
   });
 }
 
-async function connectViewer(code, pdfUrl, numSlides) {
+async function connectViewer(code, pdfData, numSlides) {
   showScreen('viewer');
   setViewerStatus('orange', 'Loading slides…');
 
@@ -385,7 +396,10 @@ async function connectViewer(code, pdfUrl, numSlides) {
 
   let viewerPdf = null;
   try {
-    viewerPdf = await pdfjsLib.getDocument(pdfUrl).promise;
+    const binary = atob(pdfData);
+    const bytes = new Uint8Array(binary.length);
+    for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
+    viewerPdf = await pdfjsLib.getDocument({ data: bytes }).promise;
   } catch(e) {
     setViewerStatus('red', 'Failed to load slides');
     return;
