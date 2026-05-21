@@ -118,7 +118,7 @@ async function startSession() {
     const pdfData = dataUrl.split(',')[1];
 
     progressEl.textContent = 'Loading slides…';
-    pdfDoc = await pdfjsLib.getDocument(dataUrl).promise;
+    pdfDoc = await pdfjsLib.getDocument({ data: new Uint8Array(await file.arrayBuffer()) }).promise;
     totalSlides = pdfDoc.numPages;
     slideIndex = 1;
 
@@ -234,7 +234,10 @@ async function connectViewer(code, pdfData, numSlides) {
 
   viewerPdf = null;
   try {
-    viewerPdf = await pdfjsLib.getDocument('data:application/pdf;base64,' + pdfData).promise;
+    const raw = atob(pdfData);
+    const pdfBytes = new Uint8Array(raw.length);
+    for (let i = 0; i < raw.length; i++) pdfBytes[i] = raw.charCodeAt(i);
+    viewerPdf = await pdfjsLib.getDocument({ data: pdfBytes }).promise;
   } catch(e) {
     setViewerStatus('red', 'Failed to load slides');
     return;
