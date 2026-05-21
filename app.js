@@ -122,12 +122,30 @@ async function startSession() {
     totalSlides = pdfDoc.numPages;
     slideIndex = 1;
 
-    progressEl.textContent = 'Sharing slides…';
+    progressEl.textContent = 'Sharing slides… 0%';
+
+    const sessionData = { active: true, created: Date.now(), pdfData, totalSlides, slideIndex: 1 };
+    const uploadUrl = firebaseConfig.databaseURL + '/sessions/' + sessionCode + '.json';
+
+    await new Promise((resolve, reject) => {
+      const xhr = new XMLHttpRequest();
+      xhr.open('PUT', uploadUrl);
+      xhr.setRequestHeader('Content-Type', 'application/json');
+      xhr.upload.onprogress = e => {
+        if (e.lengthComputable) {
+          progressEl.textContent = 'Sharing slides… ' + Math.round(e.loaded / e.total * 100) + '%';
+        }
+      };
+      xhr.onload = () => {
+        if (xhr.status >= 200 && xhr.status < 300) resolve();
+        else reject(new Error('Upload failed (' + xhr.status + ')'));
+      };
+      xhr.onerror = () => reject(new Error('Network error during upload'));
+      xhr.send(JSON.stringify(sessionData));
+    });
 
     const sessRef = db.ref('sessions/' + sessionCode);
-    await sessRef.set({ active: true, created: Date.now(), pdfData, totalSlides, slideIndex: 1 });
     sessRef.child('active').onDisconnect().set(false);
-
     sessRef.child('viewers').on('child_added', () => { viewerCount++; updateViewerCount(); });
     sessRef.child('viewers').on('child_removed', () => { viewerCount = Math.max(0, viewerCount - 1); updateViewerCount(); });
 
