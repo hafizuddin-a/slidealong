@@ -15,7 +15,7 @@ html, body { height: 100%; background: var(--paper); color: var(--ink); font-fam
 #setup, #join { align-items: center; justify-content: center; padding: 2rem; gap: 1.5rem; }
 .setup-header { text-align: center; }
 .setup-header h2 { font-family: 'DM Serif Display', serif; font-size: 2rem; letter-spacing: -0.02em; }
-.setup-header p { font-size: 0.75rem; color: var(--muted); margin-top: 0.4rem; line-height: 1.6; }
+.setup-header p { font-size: 0.75rem; color: var(--muted); margin-top: 0.4rem; line-height: 1.6; max-width: 420px; margin-left: auto; margin-right: auto; }
 .setup-card { width: 100%; max-width: 420px; background: var(--card); border: 1.5px solid var(--border); border-radius: 4px; padding: 1.5rem; display: flex; flex-direction: column; gap: 1rem; }
 .hint { font-size: 0.72rem; color: var(--muted); line-height: 1.8; }
 .field-label { font-size: 0.7rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); margin-bottom: 0.35rem; }
