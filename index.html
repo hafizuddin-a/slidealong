@@ -293,23 +293,21 @@ async function startSession() {
   progressEl.textContent = 'Reading file…';
 
   try {
-    const arrayBuffer = await new Promise((resolve, reject) => {
+    const dataUrl = await new Promise((resolve, reject) => {
       const reader = new FileReader();
       reader.onload = e => resolve(e.target.result);
       reader.onerror = () => reject(new Error('Failed to read file'));
-      reader.readAsArrayBuffer(file);
+      reader.readAsDataURL(file);
     });
 
-    pdfDoc = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+    const pdfData = dataUrl.split(',')[1];
+
+    progressEl.textContent = 'Loading slides…';
+    pdfDoc = await pdfjsLib.getDocument(dataUrl).promise;
     totalSlides = pdfDoc.numPages;
     slideIndex = 1;
 
     progressEl.textContent = 'Sharing slides…';
-
-    const bytes = new Uint8Array(arrayBuffer);
-    let binary = '';
-    for (let i = 0; i < bytes.length; i++) binary += String.fromCharCode(bytes[i]);
-    const pdfData = btoa(binary);
 
     const sessRef = db.ref('sessions/' + sessionCode);
     await sessRef.set({ active: true, created: Date.now(), pdfData, totalSlides, slideIndex: 1 });
@@ -396,10 +394,7 @@ async function connectViewer(code, pdfData, numSlides) {
 
   let viewerPdf = null;
   try {
-    const binary = atob(pdfData);
-    const bytes = new Uint8Array(binary.length);
-    for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
-    viewerPdf = await pdfjsLib.getDocument({ data: bytes }).promise;
+    viewerPdf = await pdfjsLib.getDocument('data:application/pdf;base64,' + pdfData).promise;
   } catch(e) {
     setViewerStatus('red', 'Failed to load slides');
     return;
