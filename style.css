@@ -64,6 +64,8 @@ html, body { height: 100%; background: var(--paper); color: var(--ink); font-fam
 
 /* BOTTOM BARS */
 .bottombar { display: flex; align-items: center; justify-content: space-between; padding: 0.75rem 1rem; background: var(--ink); flex-shrink: 0; gap: 0.75rem; }
+.bottombar-nav { display: flex; align-items: center; gap: 0.25rem; }
+.bottombar-actions { display: flex; align-items: center; gap: 0.75rem; }
 .viewers-pill { font-size: 0.65rem; color: #7ecb9a; letter-spacing: 0.08em; text-transform: uppercase; display: flex; align-items: center; gap: 0.5rem; }
 .viewers-pill::before { content: ''; width: 6px; height: 6px; background: #7ecb9a; border-radius: 50%; animation: pulse 2s infinite; }
 .slide-counter { font-size: 0.65rem; color: rgba(255,255,255,0.6); letter-spacing: 0.1em; text-transform: uppercase; }
@@ -96,7 +98,6 @@ html, body { height: 100%; background: var(--paper); color: var(--ink); font-fam
   text-align: center;
 }
 .topbar-group-lg { display: flex; align-items: center; gap: 0.75rem; }
-.topbar-group-sm { display: flex; align-items: center; gap: 0.5rem; }
 .btn-topbar-ghost {
   padding: 0.35rem 0.75rem;
   font-size: 0.65rem;

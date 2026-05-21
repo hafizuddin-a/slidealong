@@ -59,7 +59,6 @@
   <div class="topbar">
     <div class="logo-bar">Slide<span>Along</span></div>
     <div class="topbar-group-lg">
-      <div class="code-label">Code: <strong id="pres-code">——</strong></div>
       <div class="badge pres">Presenter</div>
       <div class="viewers-pill" id="viewer-count">0 viewers</div>
     </div>
@@ -69,10 +68,15 @@
     <canvas id="pres-canvas" class="pdf-canvas"></canvas>
   </div>
   <div class="bottombar">
-    <button class="slide-nav-btn" id="prev-btn" disabled>◀</button>
-    <span class="slide-counter" id="slide-counter">— / —</span>
-    <button class="slide-nav-btn" id="next-btn" disabled>▶</button>
-    <button class="btn btn-topbar-ghost" id="invite-btn">Invite ↗</button>
+    <div class="bottombar-nav">
+      <button class="slide-nav-btn" id="prev-btn" disabled>◀</button>
+      <span class="slide-counter" id="slide-counter">— / —</span>
+      <button class="slide-nav-btn" id="next-btn" disabled>▶</button>
+    </div>
+    <div class="bottombar-actions">
+      <div class="code-label">Code: <strong id="pres-code">——</strong></div>
+      <button class="btn btn-topbar-ghost" id="invite-btn">Invite ↗</button>
+    </div>
   </div>
 </div>
 
